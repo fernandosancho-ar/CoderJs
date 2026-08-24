@@ -16,4 +16,4 @@ console.log("Año de nacimiento: " + AñoNacimiento);
 console.log("Edad: " + edad);
 
 // Mostrar resultado al usuario
-alert("Hola " + nombre + " tu apellido es " + apellido + ", tu edad es de: " + edad + " años");
+alert("Hola " + nombre + " tu apellido es " + apellido + ", tu edad es de " + edad + " años");
