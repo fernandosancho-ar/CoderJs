@@ -3,17 +3,17 @@
 //// Solicitar datos al usuario
 const nombre = prompt("Ingrese su nombre");
 const apellido = prompt("Ingrese su apellido");
-const AñoActual = Number(prompt("Ingrese el año actual en formato AAAA"));
-const AñoNacimiento = Number(prompt("Ingrese año de nacimiento en formato AAAA"));
+const anioActual = parseInt(prompt("Ingrese el año actual en formato AAAA"));
+const anioNacimiento = parseInt(prompt("Ingrese año de nacimiento en formato AAAA"));
 
-//// Realizar la suma
-const edad = AñoActual - AñoNacimiento;
+//// Realizar la resta
+const edad = anioActual - anioNacimiento;
 
 //// Mostrar información en consola
 console.log("Nombre Completo: " + nombre + " " + apellido);
-console.log("Año actual: " + AñoActual);
-console.log("Año de nacimiento: " + AñoNacimiento);
+console.log("Año actual: " + anioActual);
+console.log("Año de nacimiento: " + anioNacimiento);
 console.log("Edad: " + edad);
 
-// Mostrar resultado al usuario
+//// Mostrar resultado al usuario
 alert("Hola " + nombre + " tu apellido es " + apellido + ", tu edad es de " + edad + " años");
