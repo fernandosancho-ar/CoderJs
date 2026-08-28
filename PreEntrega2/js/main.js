@@ -3,8 +3,8 @@
 //// Solicitar datos al usuario
 const nombre = prompt("Ingrese su nombre");
 const apellido = prompt("Ingrese su apellido");
-const anioActual = Number(prompt("Ingrese el año actual en formato AAAA"));
-const anioNacimiento = Number(prompt("Ingrese año de nacimiento en formato AAAA"));
+const anioActual = parseInt(prompt("Ingrese el año actual en formato AAAA"));
+const anioNacimiento = parseInt(prompt("Ingrese año de nacimiento en formato AAAA"));
 
 //// Realizar la suma
 const edad = anioActual - anioNacimiento;
