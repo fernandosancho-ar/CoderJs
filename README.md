@@ -6,3 +6,46 @@ Este repositorio reúne las distintas pre-entregas realizadas durante el curso, 
 
 Estado del proyecto: en desarrollo
 Actualmente se encuentra realizada la PreEntrega 3 de 10.
+
+Sobre el proyecto
+
+El proyecto comenzó como una práctica de los fundamentos de JavaScript y fue evolucionando progresivamente mediante la incorporación de nuevos conceptos y herramientas del lenguaje.
+
+Cada pre-entrega representa una etapa del aprendizaje y permite aplicar en un proyecto práctico los contenidos trabajados durante el curso.
+
+El objetivo final es completar las 10 pre-entregas y posteriormente desarrollar el Trabajo Final.
+
+structura del repositorio
+CoderJs/
+│
+├── PreEntrega1/
+│   ├── index.html
+│   └── js/
+│       ├── main.js
+│       └── MainClase1.js
+│
+├── PreEntrega2/
+│   ├── index.html
+│   └── js/
+│       ├── main.js
+│       └── mainClase2.js
+│
+├── PreEntrega3/
+│   ├── index.html
+│   └── js/
+│       ├── main.js
+│       └── mainClase3.js
+│
+└── README.md
+
+La estructura irá creciendo a medida que se incorporen las siguientes pre-entregas.
+
+ecnologías
+
+Actualmente el proyecto utiliza:
+
+HTML5
+JavaScript
+Git
+GitHub
+
