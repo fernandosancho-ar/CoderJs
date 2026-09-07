@@ -15,9 +15,9 @@ Cada pre-entrega representa una etapa del aprendizaje y permite aplicar en un pr
 
 El objetivo final es completar las 10 pre-entregas y posteriormente desarrollar el Trabajo Final.
 
-structura del repositorio
+Estructura del repositorio
+~~~text
 CoderJs/
-│
 ├── PreEntrega1/
 │   ├── index.html
 │   └── js/
@@ -37,10 +37,10 @@ CoderJs/
 │       └── mainClase3.js
 │
 └── README.md
-
+~~~
 La estructura irá creciendo a medida que se incorporen las siguientes pre-entregas.
 
-ecnologías
+Tecnologías
 
 Actualmente el proyecto utiliza:
 
