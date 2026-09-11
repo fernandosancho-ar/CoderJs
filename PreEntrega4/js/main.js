@@ -108,6 +108,15 @@ while (continuar) {
                 "⚠️⚠️⚠️ \n"
             );
             
+            //// Función para recorrer y mostrar los datos del array
+            function mostrarArray(array) {
+                let datosActualizados = "Datos en el Array\n\n";
+                 for (const dato of array) {
+                    datosActualizados += "- " + dato + "\n";
+                }
+                return datosActualizados;
+            }            
+
             let gestionarDatos = true;
             console.log("Consulta gestor de datos"); 
             while (gestionarDatos) { 
@@ -118,14 +127,15 @@ while (continuar) {
                         "2 - Agregar un dato\n" + 
                         "3 - Eliminar el último dato\n" + 
                         "4 - Modificar un dato\n" + 
-                        "5 - Ver todos mis datos\n" + 
+                        "5 - Ver datos del Array\n" + 
                         "6 - Volver al Menú anterior\n" +
                         "0 - Salir" 
                     )
                 ); 
                 
                 switch (opcionDatos) { 
-                    
+                   
+
                     case 1: 
                         const datoConsultar = parseInt( 
                             prompt( 
@@ -354,11 +364,7 @@ while (continuar) {
                         break;
                         
                     case 5: 
-                        let datosActualizados = "Datos en el Array\n\n"; 
-                        for (const dato of datosUsuario) { 
-                            datosActualizados += "- " + dato + "\n"; 
-                        } 
-                        alert(datosActualizados); 
+                        alert(mostrarArray(datosUsuario));
                         break; 
                         
                     case 6:
@@ -376,7 +382,7 @@ while (continuar) {
             } 
             break;
 
-        case 0:
+        case 0: 
             continuar = false;
             alert("Gracias por utilizar el simulador.");
             console.log("El usuario salió del simulador.");
