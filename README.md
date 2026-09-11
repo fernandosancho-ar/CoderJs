@@ -22,20 +22,23 @@ CoderJs/
 │   ├── index.html
 │   └── js/
 │       ├── main.js
-│       └── MainClase1.js
 │
 ├── PreEntrega2/
 │   ├── index.html
 │   └── js/
 │       ├── main.js
-│       └── mainClase2.js
 │
 ├── PreEntrega3/
 │   ├── index.html
 │   └── js/
 │       ├── main.js
-│       └── mainClase3.js
 │
+├── PreEntrega3/
+│   ├── index.html
+│   └── js/
+│       ├── main.js
+│
+└── .gitignore
 └── README.md
 ~~~
 La estructura irá creciendo a medida que se incorporen las siguientes pre-entregas.
