@@ -5,7 +5,7 @@ Repositorio correspondiente al proceso de aprendizaje y desarrollo de proyectos 
 Este repositorio reúne las distintas pre-entregas realizadas durante el curso, mostrando la evolución progresiva de los conocimientos y conceptos incorporados en cada etapa.
 
 Estado del proyecto: en desarrollo
-Actualmente se encuentra realizada la PreEntrega 3 de 10.
+Actualmente se encuentra realizada la PreEntrega 5 de 10.
 
 Sobre el proyecto
 
@@ -38,7 +38,12 @@ CoderJs/
 │   └── js/
 │       └── main.js
 │
-└── .gitignore
+├── PreEntrega5/
+│   ├── index.html
+│   └── js/
+│       └── main.js
+│
+├── .gitignore
 └── README.md
 ~~~
 La estructura irá creciendo a medida que se incorporen las siguientes pre-entregas.
