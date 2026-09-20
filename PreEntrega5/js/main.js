@@ -28,7 +28,7 @@ function mostrarDatos(usuario, anioActual) {
     console.log("Documento: " + usuario.numDocumento); 
     console.log("======================================="); }
 
-//// Función para consultar si la persona es mayor o menor de edad //// Recibe la edad como parámetro.
+////  Función para consultar si la persona es mayor o menor de edad //// Recibe la edad como parámetro.
 function verificarMayorEdad(edad) {
     if (edad >= 18) {
         return "Sos mayor de edad.";
