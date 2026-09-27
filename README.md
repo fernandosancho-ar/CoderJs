@@ -18,30 +18,11 @@ El objetivo final es completar las 10 pre-entregas y posteriormente desarrollar 
 Estructura del repositorio
 ~~~text
 CoderJs/
-├── PreEntrega1/
-│   ├── index.html
-│   └── js/
-│       └── main.js
 │
-├── PreEntrega2/
-│   ├── index.html
-│   └── js/
-│       └── main.js
+│── index.html
+├──js/
+│  └── main.js
 │
-├── PreEntrega3/
-│   ├── index.html
-│   └── js/
-│       └── main.js
-│
-├── PreEntrega4/
-│   ├── index.html
-│   └── js/
-│       └── main.js
-│
-├── PreEntrega5/
-│   ├── index.html
-│   └── js/
-│       └── main.js
 │
 ├── .gitignore
 └── README.md
