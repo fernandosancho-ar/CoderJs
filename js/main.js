@@ -28,7 +28,7 @@ function mostrarDatos(usuario, anioActual) {
     console.log("Documento: " + usuario.numDocumento); 
     console.log("======================================="); }
 
-//// Función para consultar un usuario dentro de la colección
+//// Función para consultar un usuario
 function consultarUsuario(usuarios, anioActual) {
     const documentoConsultar = prompt("Ingresá el número de documento del usuario que querés consultar:");
     if (documentoConsultar === null) {
@@ -46,7 +46,7 @@ function consultarUsuario(usuarios, anioActual) {
             const posicion = usuarios.indexOf(usuarioEncontrado);
             alert(
                 "Usuario encontrado.\n\n" +
-                "Posición en la colección: " + posicion + "\n" +
+                "Posición: " + posicion + "\n" +
                 "Nombre: " + usuarioEncontrado.nombre + "\n" +
                 "Apellido: " + usuarioEncontrado.apellido + "\n" +
                 "Documento: " + usuarioEncontrado.numDocumento + "\n" +
@@ -60,7 +60,7 @@ function consultarUsuario(usuarios, anioActual) {
     }
 }
 
-//// Función para agregar un nuevo usuario a la colección
+//// Función para agregar un nuevo usuario
 function agregarUsuario(usuarios) {
     const nombreNuevo = prompt("Ingresá el nombre del nuevo usuario:");
     if (nombreNuevo === null) {
@@ -99,12 +99,12 @@ function agregarUsuario(usuarios) {
 
         case 1:
             usuarios.unshift(nuevoUsuario);
-            alert("El usuario fue agregado al principio de la colección.");
+            alert("El usuario fue agregado al principio del conjunto.");
             break;
 
         case 2:
             usuarios.push(nuevoUsuario);
-            alert("El usuario fue agregado al final de la colección.");
+            alert("El usuario fue agregado al final del conjunto.");
             break;
 
         case 3: {
@@ -155,7 +155,7 @@ function eliminarUsuario(usuarios) {
         return;
     }
     if (usuarios.length === 1) {
-        alert("No se puede eliminar el usuario.\n\n" + "La colección debe tener al menos un usuario.");
+        alert("No se puede eliminar el usuario.\n\n" + "La base de datos debe tener al menos un usuario.");
         return;
     }
     const posicion = usuarios.indexOf(usuarioEncontrado);
@@ -176,7 +176,7 @@ function eliminarUsuario(usuarios) {
 }
 
 
-//// Función para mostrar todos los usuarios de la colección
+//// Función para mostrar todos los usuarios registraos
 function mostrarUsuarios(usuarios, anioActual) {
     let datosUsuarios = "USUARIOS REGISTRADOS\n\n";
     for (const usuarioRegistrado of usuarios) {
