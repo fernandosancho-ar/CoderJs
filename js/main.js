@@ -1,6 +1,3 @@
-//// Mi Primer Script Interactivo
-
-
 //// Clase Usuario
 class Usuario {
     constructor(nombre, apellido, anioNacimiento, numDocumento) {
@@ -10,7 +7,7 @@ class Usuario {
         this.numDocumento = numDocumento;
     }
 
-    //// Método para calcular la edad del usuario
+//// Método para calcular la edad del usuario
     calcularEdad(anioActual) {
         return anioActual - this.anioNacimiento;
     }
