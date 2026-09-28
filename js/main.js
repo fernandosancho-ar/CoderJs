@@ -28,6 +28,174 @@ function mostrarDatos(usuario, anioActual) {
     console.log("Documento: " + usuario.numDocumento); 
     console.log("======================================="); }
 
+//// Función para consultar un usuario dentro de la colección
+function consultarUsuario(usuarios, anioActual) {
+    const documentoConsultar = prompt("Ingresá el número de documento del usuario que querés consultar:");
+    if (documentoConsultar === null) {
+        return;
+    }
+    let usuarioEncontrado = null;
+    for (const usuarioRegistrado of usuarios) {
+        if (usuarioRegistrado.numDocumento === documentoConsultar) {
+            usuarioEncontrado = usuarioRegistrado;
+            break;
+        }
+    }
+    if (usuarioEncontrado !== null) {
+        if (usuarios.includes(usuarioEncontrado)) {
+            const posicion = usuarios.indexOf(usuarioEncontrado);
+            alert(
+                "Usuario encontrado.\n\n" +
+                "Posición en la colección: " + posicion + "\n" +
+                "Nombre: " + usuarioEncontrado.nombre + "\n" +
+                "Apellido: " + usuarioEncontrado.apellido + "\n" +
+                "Documento: " + usuarioEncontrado.numDocumento + "\n" +
+                "Edad: " +
+                usuarioEncontrado.calcularEdad(anioActual)
+            );
+            console.log("Usuario encontrado en posición: " + posicion);
+        }
+    } else {
+        alert("No se encontró ningún usuario con ese número de documento.");
+    }
+}
+
+//// Función para agregar un nuevo usuario a la colección
+function agregarUsuario(usuarios) {
+    const nombreNuevo = prompt("Ingresá el nombre del nuevo usuario:");
+    if (nombreNuevo === null) {
+        return;
+    }
+    const apellidoNuevo = prompt("Ingresá el apellido del nuevo usuario:");
+    if (apellidoNuevo === null) {
+        return;
+    }
+    const anioNacimientoNuevo = parseInt(
+        prompt("Ingresá el año de nacimiento del nuevo usuario:")
+    );
+    if (isNaN(anioNacimientoNuevo)) {
+        alert("El año ingresado no es válido.");
+        return;
+    }
+    const documentoNuevo = prompt("Ingresá el número de documento del nuevo usuario:");
+    if (documentoNuevo === null) {
+        return;
+    }
+    const nuevoUsuario = new Usuario(
+        nombreNuevo,
+        apellidoNuevo,
+        anioNacimientoNuevo,
+        documentoNuevo
+    );
+    const ubicacion = parseInt(
+        prompt(
+            "¿Dónde querés agregar el nuevo usuario?\n\n" +
+            "1 - Al principio\n" +
+            "2 - Al final\n" +
+            "3 - En una posición específica"
+        )
+    );
+    switch (ubicacion) {
+
+        case 1:
+            usuarios.unshift(nuevoUsuario);
+            alert("El usuario fue agregado al principio de la colección.");
+            break;
+
+        case 2:
+            usuarios.push(nuevoUsuario);
+            alert("El usuario fue agregado al final de la colección.");
+            break;
+
+        case 3: {
+            const posicion = parseInt(
+                prompt(
+                    "Ingresá la posición donde querés agregar el usuario.\n\n" +
+                    "La primera posición es 0."
+                )
+            );
+            if (
+                isNaN(posicion) ||
+                posicion < 0 ||
+                posicion > usuarios.length
+            ) {
+                alert("La posición ingresada no es válida.");
+                return;
+            }
+            usuarios.splice(
+                posicion,
+                0,
+                nuevoUsuario
+            );
+            alert("El usuario fue agregado en la posición " + posicion + ".");
+            break;
+        }
+
+        default:
+            alert("Opción incorrecta.");
+            break;
+    }
+}
+
+//// Función para eliminar el usuario 
+function eliminarUsuario(usuarios) {
+    const documentoEliminar = prompt("Ingresá el número de documento del usuario que querés eliminar:");
+    if (documentoEliminar === null) {
+        return;
+    }
+    let usuarioEncontrado = null;
+    for (const usuarioRegistrado of usuarios) {
+        if (usuarioRegistrado.numDocumento === documentoEliminar) {
+            usuarioEncontrado = usuarioRegistrado;
+            break;
+        }
+    }
+    if (usuarioEncontrado === null) {
+        alert("No se encontró ningún usuario con ese número de documento.");
+        return;
+    }
+    if (usuarios.length === 1) {
+        alert("No se puede eliminar el usuario.\n\n" + "La colección debe tener al menos un usuario.");
+        return;
+    }
+    const posicion = usuarios.indexOf(usuarioEncontrado);
+    const confirmar = confirm(
+        "Vas a eliminar el siguiente usuario:\n\n" +
+        "Nombre: " + usuarioEncontrado.nombre + "\n" +
+        "Apellido: " + usuarioEncontrado.apellido + "\n" +
+        "Documento: " + usuarioEncontrado.numDocumento + "\n\n" +
+        "¿Querés continuar?"
+    );
+    if (!confirmar) {
+        return;
+    }
+    usuarios.splice(posicion, 1);
+    alert("El usuario fue eliminado correctamente.");
+    console.log("Usuario eliminado:");
+    console.log(usuarioEncontrado);
+}
+
+
+//// Función para mostrar todos los usuarios de la colección
+function mostrarUsuarios(usuarios, anioActual) {
+    let datosUsuarios = "USUARIOS REGISTRADOS\n\n";
+    for (const usuarioRegistrado of usuarios) {
+        datosUsuarios +=
+            "Nombre: " + usuarioRegistrado.nombre + "\n" +
+            "Apellido: " + usuarioRegistrado.apellido + "\n" +
+            "Documento: " + usuarioRegistrado.numDocumento + "\n" +
+            "Edad: " + usuarioRegistrado.calcularEdad(anioActual) + "\n\n";
+    }
+    alert(datosUsuarios);
+    console.log(
+        "========== USUARIOS REGISTRADOS =========="
+    );
+    for (const usuarioRegistrado of usuarios) {
+        console.log(usuarioRegistrado);
+    }
+    console.log("==========================================");
+}
+
 //// Función para consultar si la persona es mayor o menor de edad //// Recibe la edad como parámetro.
 function verificarMayorEdad(edad) {
     if (edad >= 18) {
@@ -124,6 +292,29 @@ function consultarDato(usuario, anioActual) {
     }
 }
 
+//// Función para buscar los datos de un usuario a modificar
+function modificarUsuario(usuarios, anioActual) {
+    const documentoModificar = prompt("Ingresá el número de documento del usuario que querés modificar:");
+    if (documentoModificar === null) {
+        return anioActual;
+    }
+    let usuarioEncontrado = null;
+    for (const usuarioRegistrado of usuarios) {
+        if (usuarioRegistrado.numDocumento === documentoModificar) {
+            usuarioEncontrado = usuarioRegistrado;
+            break;
+        }
+    }
+    if (usuarioEncontrado === null) {
+        alert("No se encontró ningún usuario con ese número de documento.");
+        return anioActual;
+    }
+    return modificarDato(
+        usuarioEncontrado,
+        anioActual
+    );
+}
+
 //// Función para modificar un dato del usuario
 function modificarDato(usuario, anioActual) {
 
@@ -134,7 +325,6 @@ function modificarDato(usuario, anioActual) {
             "2 - Apellido\n" +
             "3 - Año de nacimiento\n" +
             "4 - Número de documento\n" +
-            "5 - Año actual\n" +
             "9 - Volver\n" +
             "0 - Salir"
         )
@@ -168,11 +358,6 @@ function modificarDato(usuario, anioActual) {
             propiedadModificar = "numDocumento";
             datoActual = usuario.numDocumento;
             tipoDato = "texto";
-            break;
-
-        case 5:
-            datoActual = anioActual;
-            tipoDato = "anioActual";
             break;
 
         case 9:
@@ -258,214 +443,61 @@ function mostrarDatosUsuario(usuario, anioActual) {
     console.log(usuario);
 }
 
-//// Función para mostrar el contenido del array
-function mostrarArray(array) {
-    let datosActualizados = "Datos en el Array\n\n";
-    for (const dato of array) {
-        datosActualizados += "- " + dato + "\n";
-    }
-    return datosActualizados;
-}
-
-//// Función para consultar un dato dentro del array
-function consultarArray(array) {
-    const datoConsultar = prompt("Ingresá el dato que querés buscar:");
-    if (datoConsultar === null) {
-        return;
-    }
-    if (array.includes(datoConsultar)) {
-        const posicion = array.indexOf(datoConsultar);
-        alert(
-            "El dato está registrado.\n\n" +
-            "Valor: " + datoConsultar + "\n" +
-            "Posición dentro de la lista: " + posicion
-        );
-        console.log( "Dato encontrado en posición: " + posicion );
-    } else {
-
-        alert("El dato no se encuentra registrado.");
-    }
-}
-
-//// Función para agregar un dato al array
-function agregarDatoArray(array) {
-    const nuevoDato = prompt( "AGREGAR DATO\n\n" +
-        "Ingresá el nuevo dato que querés agregar:"
-    );
-    if (nuevoDato === null) {
-        return;
-    }
-    const prioridad = parseInt(
-        prompt(
-            "¿Querés agregar este dato al principio del array?\n\n" +
-            "1 - Sí\n" +
-            "2 - No"
-        )
-    );
-    if (prioridad === 1) {
-        array.unshift(nuevoDato);
-        alert( "El dato fue agregado en el primer lugar del array.");
-    } else if (prioridad === 2) {
-        array.push(nuevoDato);
-        alert("El dato fue agregado correctamente.");
-    } else {
-        alert( "Opción incorrecta." );
-    }
-}
-
-//// Función para eliminar el último dato del array
-function eliminarDatoArray(array) {
-    if (array.length > 0) {
-        const datoEliminado = array.pop();
-        alert(
-            "Se ha eliminado el elemento: " +
-            datoEliminado
-        );
-        const reemplazar = parseInt(
-            prompt(
-                "¿Querés reemplazar el dato eliminado?\n\n" +
-                "1 - Sí\n" +
-                "2 - No"
-            )
-        );
-
-        if (reemplazar === 1) {
-            const datoReemplazo = prompt(
-                "Ingresá el nuevo dato:"
-            );
-
-            if (datoReemplazo !== null) {
-                array.push(datoReemplazo);
-                alert("El dato fue reemplazado correctamente.");
-            }
-        }
-
-    } else {
-        alert("No hay datos disponibles para eliminar.");
-    }
-}
-
-//// Función para modificar un dato dentro del array
-function modificarDatoArray(array) {
-    const datoActual = prompt("Ingresá el dato que querés modificar:");
-    if (datoActual === null) {
-        return;
-    }
-    const posicion = array.indexOf(datoActual);
-    if (posicion !== -1) {
-        const datoNuevo = prompt(
-            "El dato actual es:\n\n" +
-            datoActual +
-            "\n\nIngresá el nuevo valor:"
-        );
-        if (datoNuevo !== null) {
-            array.splice(posicion,1,datoNuevo);
-            alert("El dato fue modificado correctamente.");
-        }
-    } else {
-        alert(
-            "El dato no se encuentra registrado."
-        );
-    }
-}
-
-//// Función para gestionar las operaciones del array
-function gestionarArray(array) {
-    let gestionar = true;
-    while (gestionar) {
-        const opcionArray = parseInt(
-            prompt(
-                "GESTOR DE ARRAY\n\n" +
-                "1 - Consultar un dato\n" +
-                "2 - Agregar un dato\n" +
-                "3 - Eliminar el último dato\n" +
-                "4 - Modificar un dato\n" +
-                "5 - Ver datos del Array\n" +
-                "9 - Volver\n" +
-                "0 - Salir"
-            )
-        );
-        switch (opcionArray) {
-            case 1:
-                consultarArray(array);
-                break;
-
-            case 2:
-                agregarDatoArray(array);
-                break;
-            
-            case 3:
-                eliminarDatoArray(array);
-                break;
-
-            case 4:
-                modificarDatoArray(array);
-                break;
-
-            case 5:
-                alert(mostrarArray(array));
-                console.log("Contenido actual del array:");
-                console.log(array);
-                break;
-
-            case 9:
-                gestionar = false;
-                break;
-
-            case 0:
-                return "salir";
-
-            default:
-                alert("Opción incorrecta." );
-                break;
-        }
-    }
-}
-
 //// Función para gestionar los datos del usuario
-function gestionarDatos(usuario, anioActual, datosUsuario) {
+function gestionarDatos(usuarios, anioActual) {
     let gestionar = true;
-    console.log( "Consulta gestor de datos" );
+    console.log("Consulta gestor de datos");
     while (gestionar) {
         const opcionDatos = parseInt(
             prompt(
                 "GESTOR DE DATOS\n\n" +
-                "1 - Consultar un dato\n" +
-                "2 - Modificar un dato\n" +
-                "3 - Ver datos del usuario\n" +
-                "4 - Gestionar Array\n" +
+                "1 - Consultar usuario\n" +
+                "2 - Agregar usuario\n" +
+                "3 - Eliminar usuario\n" +
+                "4 - Modificar usuario\n" +
+                "5 - Ver usuarios\n" +
                 "9 - Volver\n" +
                 "0 - Salir"
             )
         );
         switch (opcionDatos) {
             case 1:
-                consultarDato(usuario,anioActual);
+                consultarUsuario(
+                    usuarios,
+                    anioActual
+                );
                 break;
 
-            case 2: {
-                const resultadoModificacion = modificarDato(usuario,anioActual);
-                if (resultadoModificacion === "salir") {
-                    return "salir";
-                }
-
-    anioActual = resultadoModificacion;
-    break;
-}
+            case 2:
+                agregarUsuario(
+                    usuarios
+                );
+                break;
 
             case 3:
-                mostrarDatosUsuario( usuario, anioActual);
+                eliminarUsuario(
+                    usuarios
+                );
                 break;
 
             case 4: {
-                const resultadoArray = gestionarArray(
-                 datosUsuario
+                const resultadoModificacion = modificarUsuario(
+                    usuarios,
+                    anioActual
                 );
-                if (resultadoArray === "salir") {
+                if (resultadoModificacion === "salir") {
                     return "salir";
                 }
+                anioActual = resultadoModificacion;
                 break;
             }
+
+            case 5:
+                mostrarUsuarios(
+                    usuarios,
+                    anioActual
+                );
+                break;
 
             case 9:
                 gestionar = false;
@@ -475,7 +507,9 @@ function gestionarDatos(usuario, anioActual, datosUsuario) {
                 return "salir";
 
             default:
-                alert( "Opción incorrecta." );
+                alert(
+                    "Opción incorrecta."
+                );
                 break;
         }
     }
@@ -518,14 +552,6 @@ const usuarios = [
     usuario3
 ];
 
-//// Array de datos del usuario
-let datosUsuario = [
-    usuario.nombre,
-    usuario.apellido,
-    usuario.anioNacimiento,
-    usuario.numDocumento
-];
-
 //// Mostrar los objetos creados en consola
 console.log( "========== USUARIOS CREADOS ==========" );
 
@@ -554,11 +580,12 @@ while (continuar) {
             "2 - Consultar mayoría de edad\n" +
             "3 - Consultar categoría de edad\n" +
             "4 - Gestor de datos\n" +
+            "5 - Modificar año actual\n" +
             "0 - Salir"
         )
     );
 
-    //// Switch principal del simulador
+//// Switch principal del simulador
     switch (menu) {
         case 1:
             consultarEdad(usuario, anioActual );
@@ -574,7 +601,7 @@ while (continuar) {
 
         case 4:
             const resultadoGestor = gestionarDatos(
-                usuario, anioActual, datosUsuario
+                usuarios, anioActual 
             );
             if (resultadoGestor === "salir") {
                 continuar = false;
@@ -582,6 +609,24 @@ while (continuar) {
                 anioActual = resultadoGestor;
             }
             break;
+
+        case 5:
+            const nuevoAnioActual = parseInt(
+                prompt(
+                    "El año actual es " + anioActual + ".\n\n" +
+                    "Ingresá el nuevo año actual:"
+                )
+            );
+            if (isNaN(nuevoAnioActual)) {
+               alert("El año ingresado no es válido.");
+            } else {
+                anioActual = nuevoAnioActual;
+                alert( "El año actual fue modificado correctamente.\n\n" +
+                   "Nuevo año actual: " + anioActual
+                );
+                console.log("Año actual modificado: " + anioActual);
+            }
+        break; 
 
         case 0:
             continuar = false;
@@ -593,19 +638,6 @@ while (continuar) {
             break;
     }
 
-    //// Preguntar si desea realizar otra consulta
-    if (continuar) {
-        const nuevaConsulta = parseInt(
-            prompt(
-                "¿Desea realizar otra consulta?\n" +
-                "1 - Sí, realizar otra consulta\n" +
-                "2 - No, salir" )
-        );
-
-        if (nuevaConsulta === 2) {
-            continuar = false;
-        }
-    }
 }
 
 //// Mensaje salida del simulador
