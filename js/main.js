@@ -33,8 +33,7 @@ function consultarUsuario(usuarios, anioActual) {
         return;
     }
     const usuarioEncontrado = buscarUsuarioPorDocumento(
-        usuarios,
-        documentoConsultar
+        usuarios, documentoConsultar
     );
     if (usuarioEncontrado !== null) {
         if (usuarios.includes(usuarioEncontrado)) {
@@ -42,13 +41,14 @@ function consultarUsuario(usuarios, anioActual) {
             alert(
                 "Usuario encontrado.\n\n" +
                 "ID: " + usuarioEncontrado.id + "\n" +
-                "Posición em array: " + posicion + "\n" +
+                "Posición en array: " + posicion + "\n" +
                 "Nombre: " + usuarioEncontrado.nombre + "\n" +
                 "Apellido: " + usuarioEncontrado.apellido + "\n" +
                 "Documento: " + usuarioEncontrado.numDocumento + "\n" +
                 "Edad: " + usuarioEncontrado.calcularEdad(anioActual)
             );
             console.log("Usuario encontrado en posición: " + posicion);
+            console.log(usuarioEncontrado);
         }
     } else {
         alert("No se encontró ningún usuario con ese número de documento.");
@@ -80,10 +80,11 @@ function agregarEnPosicion(usuarios, nuevoUsuario) {
         posicion > usuarios.length
     ) {
         alert("La posición ingresada no es válida.");
-        return;
+        return false;
     }
     usuarios.splice(posicion,0,nuevoUsuario);
     alert("El usuario fue agregado en la posición " + posicion + ".");
+    return true;
 }
 
 //// Función para verificar si un texto contiene números
@@ -94,6 +95,42 @@ function contieneNumeros(texto) {
         }
     }
     return false;
+}
+
+//// Función para validar un texto 
+function esTextoValido(valor) {
+    return valor !== null && valor !== "" && !contieneNumeros(valor);
+}
+
+//// Función para validar un número 
+function esNumeroValido(valor) {
+    return valor !== null && valor !== "" && !isNaN(valor);
+}
+
+//// Función para pedir un texto sin números 
+function pedirTexto(mensaje, permiteCancelar) {
+    let valor = prompt(mensaje);
+    while (!esTextoValido(valor)) {
+        if (valor === null && permiteCancelar) {
+            return null;
+        }
+        alert("El dato ingresado no es válido. Solo se permiten letras.");
+        valor = prompt(mensaje);
+    }
+    return valor;
+}
+
+//// Función para pedir un número 
+function pedirNumero(mensaje, permiteCancelar) {
+    let valor = prompt(mensaje);
+    while (!esNumeroValido(valor)) {
+        if (valor === null && permiteCancelar) {
+            return null;
+        }
+        alert("El dato ingresado no es válido. Solo se permiten números.");
+        valor = prompt(mensaje);
+    }
+    return valor;
 }
 
 //// Función para verificar si un documento ya está registrado 
@@ -119,22 +156,19 @@ function generarNuevoId(usuarios) {
 
 //// Función para agregar un nuevo usuario
 function agregarUsuario(usuarios) {
-    const nombreNuevo = prompt("Ingresá el nombre del nuevo usuario:");
+    const nombreNuevo = pedirTexto("Ingresá el nombre del nuevo usuario:", true);
     if (nombreNuevo === null) {
         return;
     }
-    const apellidoNuevo = prompt("Ingresá el apellido del nuevo usuario:");
+    const apellidoNuevo = pedirTexto("Ingresá el apellido del nuevo usuario:", true);
     if (apellidoNuevo === null) {
         return;
     }
-    const anioNacimientoNuevo = parseInt(
-        prompt("Ingresá el año de nacimiento del nuevo usuario:")
-    );
-    if (isNaN(anioNacimientoNuevo)) {
-        alert("El año ingresado no es válido.");
+    const anioNacimientoNuevo = pedirNumero("Ingresá el año de nacimiento del nuevo usuario:", true);
+    if (anioNacimientoNuevo === null) {
         return;
     }
-    const documentoNuevo = prompt("Ingresá el número de documento del nuevo usuario:");
+    const documentoNuevo = pedirNumero("Ingresá el número de documento del nuevo usuario:", true);
     if (documentoNuevo === null) {
         return;
     }
@@ -143,40 +177,50 @@ function agregarUsuario(usuarios) {
         return;
     }
     const nuevoId = generarNuevoId(usuarios);
+    console.log("Nuevo ID generado: " + nuevoId);
     const nuevoUsuario = new Usuario(
         nuevoId,
         nombreNuevo,
         apellidoNuevo,
-        anioNacimientoNuevo,
+        parseInt(anioNacimientoNuevo),
         documentoNuevo
     );
-    const ubicacion = parseInt(
-        prompt(
-            "¿Dónde querés agregar el nuevo usuario?\n\n" +
+    let ubicando = true;
+    while (ubicando) {
+        const opcionUbicacion = prompt(
+            "¿Dónde querés agregar el nuevo usuario?\n" +
             "1 - Al principio\n" +
             "2 - Al final\n" +
             "3 - En una posición específica"
-        )
-    );
-    switch (ubicacion) {
+        );
+        if (opcionUbicacion === null) {
+            return;
+        }
+        const ubicacion = parseInt(opcionUbicacion);
+        switch (ubicacion) {
+            
+            case 1:
+                usuarios.unshift(nuevoUsuario);
+                alert("El usuario fue agregado al principio del conjunto.");
+                ubicando = false;
+                break;
 
-        case 1:
-            usuarios.unshift(nuevoUsuario);
-            alert("El usuario fue agregado al principio del conjunto.");
-            break;
+            case 2:
+                usuarios.push(nuevoUsuario);
+                alert("El usuario fue agregado al final del conjunto.");
+                ubicando = false;
+                break;
 
-        case 2:
-            usuarios.push(nuevoUsuario);
-            alert("El usuario fue agregado al final del conjunto.");
-            break;
+            case 3:
+                if (agregarEnPosicion(usuarios, nuevoUsuario)) {
+                    ubicando = false;
+                }
+                break;
 
-        case 3:
-            agregarEnPosicion(usuarios, nuevoUsuario);
-            break;
-
-        default:
-            alert("Opción incorrecta.");
-            break;
+            default:
+                alert("Opción incorrecta. Elegí una opción del 1 al 3.");
+                break;
+        }
     }
 }
 
@@ -317,7 +361,8 @@ function mostrarDatosTransformados(usuarios, anioActual) {
     let textoTransformado = "DATOS TRANSFORMADOS\n\n";
     datosTransformados.forEach((dato) => {
         textoTransformado +=
-            " | Nombre Completo: " + dato.nombreCompleto +
+            "=========================================\n" + 
+            "Nombre Completo: " + dato.nombreCompleto +
             " | Documento: " + dato.documento +
             " | Edad: " + dato.edad +
             " | Año de nacimiento: " + dato.anioNacimiento + "\n";
@@ -371,65 +416,6 @@ function consultarCategoria(usuario, anioActual) {
     console.log("Consulta categoría de edad");
 }
 
-//// Función para consultar un dato del usuario
-function consultarDato(usuario, anioActual) {
-    const datoConsultar = parseInt(
-        prompt(
-            "¿Qué dato querés consultar?\n\n" +
-            "1 - Nombre\n" +
-            "2 - Nombre\n" +
-            "3 - Apellido\n" +
-            "4 - Año de nacimiento\n" +
-            "5 - Número de documento\n" +
-            "6 - Edad\n" +
-            "9 - Volver\n" +
-            "0 - Salir"
-        )
-    );
-    switch (datoConsultar) {
-        case 1:
-            alert("Id registrado:\n\n" + usuario.id);
-            console.log("Consulta realizada: Id = " + usuario.Id);
-            break;
-
-        case 2:
-            alert("Nombre registrado:\n\n" + usuario.nombre);
-            console.log("Consulta realizada: Nombre = " + usuario.nombre);
-            break;
-
-        case 3:
-            alert("Apellido registrado:\n\n" + usuario.apellido);
-            console.log("Consulta realizada: Apellido = " + usuario.apellido);
-            break;
-
-        case 4:
-            alert("Año de nacimiento registrado:\n\n" + usuario.anioNacimiento);
-            console.log("Consulta realizada: Año de nacimiento = " + usuario.anioNacimiento);
-            break;
-
-        case 5:
-            alert("Número de documento registrado:\n\n" + usuario.numDocumento);
-            console.log("Consulta realizada: Número de documento = " + usuario.numDocumento);
-            break;
-
-        case 6:
-            alert("Edad registrada:\n\n" + usuario.calcularEdad(anioActual));
-
-            console.log("Consulta realizada: Edad = " + usuario.calcularEdad(anioActual));
-            break;
-
-        case 9:
-            return "volver";
-
-        case 0:
-            return "salir";
-
-        default:
-            alert("Opción incorrecta.");
-            break;
-    }
-}
-
 //// Función para buscar los datos de un usuario a modificar
 function modificarUsuario(usuarios, anioActual) {
     const documentoModificar = prompt("Ingresá el número de documento del usuario que querés modificar:");
@@ -446,7 +432,7 @@ function modificarUsuario(usuarios, anioActual) {
     let modificando = true;
     while (modificando) {
         const resultadoModificacion = modificarDato(
-            usuarioEncontrado, anioActual
+            usuarioEncontrado, anioActual, usuarios
         );
         if (resultadoModificacion === "salir") {
             return "salir";
@@ -459,7 +445,7 @@ function modificarUsuario(usuarios, anioActual) {
 }
 
 //// Función para modificar un dato del usuario
-function modificarDato(usuario, anioActual) {
+function modificarDato(usuario, anioActual, usuarios) {
 
     const datoModificar = parseInt(
         prompt(
@@ -514,38 +500,34 @@ function modificarDato(usuario, anioActual) {
     }
     let valorFinal;
     if (propiedadModificar === "anioNacimiento") {
-        if (isNaN(datoNuevo)) {
+        if (!esNumeroValido(datoNuevo)) {
             alert("El año debe contener solo números. El dato no fue modificado.");
             return anioActual;
         }
         valorFinal = parseInt(datoNuevo);
     } else if (propiedadModificar === "numDocumento") {
-        if (isNaN(datoNuevo)) {
+        if (!esNumeroValido(datoNuevo)) {
             alert("El documento debe contener solo números. El dato no fue modificado.");
+            return anioActual;
+        }
+        if (documentoExiste(usuarios, datoNuevo)) {
+            alert("Ya existe un usuario con ese número de documento. El dato no fue modificado.");
             return anioActual;
         }
         valorFinal = datoNuevo;
     } else {
-        if (contieneNumeros(datoNuevo)) {
+        if (!esTextoValido(datoNuevo)) {
             alert("El nombre y el apellido no pueden contener números. El dato no fue modificado.");
             return anioActual;
         }
         valorFinal = datoNuevo;
     }
-}
-
-//// Función para mostrar los datos actuales del usuario
-function mostrarDatosUsuario(usuario, anioActual) {
-    alert("DATOS DEL USUARIO\n\n" +
-        "Id: " + usuario.id + "\n" +
-        "Nombre: " + usuario.nombre + "\n" +
-        "Apellido: " + usuario.apellido + "\n" +
-        "Año de nacimiento: " + usuario.anioNacimiento + "\n" +
-        "Número de documento: " + usuario.numDocumento + "\n" +
-        "Edad: " + usuario.calcularEdad(anioActual)
+    usuario[propiedadModificar] = valorFinal;
+    alert("El dato fue modificado correctamente.");
+    console.log("Dato modificado: " + propiedadModificar +
+                " = " + usuario[propiedadModificar]
     );
-    console.log("Datos actuales del usuario:");
-    console.log(usuario);
+    return anioActual;
 }
 
 //// Función para gestionar los datos del usuario
@@ -615,14 +597,13 @@ function gestionarDatos(usuarios, anioActual) {
 
 //// Función para modificar el año actual 
 function modificarAnioActual(anioActual) {
-    const nuevoAnioActual = parseInt(
-        prompt("El año actual es " + anioActual + ".\n\n" +
-            "Ingresá el nuevo año actual:")
-    );
-    if (isNaN(nuevoAnioActual)) {
+    const anioIngresado = prompt("El año actual es " + anioActual + ".\n\n" +
+        "Ingresá el nuevo año actual:");
+    if (!esNumeroValido(anioIngresado)) {
         alert("El año ingresado no es válido.");
         return anioActual;
     }
+    const nuevoAnioActual = parseInt(anioIngresado);
     alert( "El año actual fue modificado correctamente.\n\n" +
         "Nuevo año actual: " + nuevoAnioActual
     );
@@ -643,11 +624,11 @@ function abrirGestorDatos() {
 }
 
 //// Solicitar datos al usuario
-let anioActual = parseInt(prompt("Ingrese el año actual en formato AAAA"));
-const nombre = prompt( "Ingrese su nombre");
-const apellido = prompt( "Ingrese su apellido");
-const anioNacimiento = parseInt(prompt ("Ingrese año de nacimiento en formato AAAA"));
-const numDocumento = prompt( "Ingrese número de documento");
+let anioActual = parseInt(pedirNumero("Ingrese el año actual en formato AAAA", false));
+const nombre = pedirTexto("Ingrese su nombre", false);
+const apellido = pedirTexto("Ingrese su apellido", false);
+const anioNacimiento = parseInt(pedirNumero("Ingrese año de nacimiento en formato AAAA", false));
+const numDocumento = pedirNumero("Ingrese número de documento", false);
 
 //// Creación de objetos Usuario
 const usuario = new Usuario(
@@ -793,7 +774,7 @@ while (continuar) {
             break;
 
         default:
-            alert( "Opción incorrecta. " + "Por favor, seleccione una opción del 0 al 4." );
+            alert( "Opción incorrecta. " + "Por favor, seleccione una opción del 0 al 5." );
             console.log("Opción incorrecta ingresada: " + menu);
             break;
     }
