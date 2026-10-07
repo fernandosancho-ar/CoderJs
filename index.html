@@ -4,10 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- JS -->
-    <script defer src="./js/main.js"></script>
-    <title>Gimnasio "Harry Trotter"</title>
+    <script defer src="js/main.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <title>Gimnasio - Harry Trotter</title>
 </head>
 <body>
-    <h1>Semana 5 - Objetos</h1>
+
+    <header class="encabezado">
+        <h1>Gimnasio Harry Trotter</h1>
+        <p>Gestior de socios</p>
+    </header>
+
+    <main class="contenido">
+
+        <!-- Formulario para agregar y modificar socios -->
+        <section class="panel">
+            <h2 id="titulo-formulario">Nuevo socio</h2>
+            <div class="formulario">
+                <div class="campo">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" placeholder="Ej: Juan">
+                </div>
+                <div class="campo">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" placeholder="Ej: Pérez">
+                </div>
+                <div class="campo">
+                    <label for="anio-nacimiento">Año de nacimiento</label>
+                    <input type="text" id="anio-nacimiento" placeholder="Ej: 1990">
+                </div>
+                <div class="campo">
+                    <label for="documento">Documento</label>
+                    <input type="text" id="documento" placeholder="Ej: 30123456">
+                </div>
+                <div class="campo">
+                    <label for="email">Email</label>
+                    <input type="text" id="email" placeholder="Ej: juan@mail.com">
+                </div>
+            </div>
+            <div class="acciones-formulario">
+                <button id="btn-guardar" class="btn-guardar">+ Agregar socio</button>
+                <button id="btn-cancelar" class="btn-cancelar" hidden>Cancelar</button>
+            </div>
+            <!-- Mensajes de feedback -->
+            <div id="mensaje" class="mensaje"></div>
+        </section>
+
+        <!-- Buscador, filtro y listado -->
+        <section class="panel">
+            <h2>Socios</h2>
+            <div class="herramientas">
+                <input type="text" id="buscar" placeholder="Buscar por N° de socio, nombre, documento o email...">
+                <select id="filtro-categoria">
+                    <option value="todas">Todas las cuotas</option>
+                    <option value="Menor">Cuota Menor</option>
+                    <option value="Adulto">Cuota Adulto</option>
+                    <option value="Senior">Cuota Senior</option>
+                </select>
+            </div>
+            <p id="contador" class="contador"></p>
+
+            <!-- Tabla donde se renderizan los socios -->
+            <div class="tabla-contenedor">
+                <table class="tabla-socios">
+                    <thead>
+                        <tr>
+                            <th>N° socio</th>
+                            <th>Apellido y nombre</th>
+                            <th>Documento</th>
+                            <th>Email</th>
+                            <th>Edad</th>
+                            <th>Cuota</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+
 </body>
 </html>
