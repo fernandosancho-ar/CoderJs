@@ -12,10 +12,13 @@
 
     <header class="encabezado">
         <h1>Gimnasio Harry Trotter</h1>
-        <p>Gestior de socios</p>
+        <p>Gestor de socios</p>
     </header>
 
     <main class="contenido">
+
+        <!-- Columna izquierda: módulos de gestión -->
+        <div class="columna-izquierda">
 
         <!-- Formulario para agregar y modificar socios -->
         <section class="panel">
@@ -31,11 +34,11 @@
                 </div>
                 <div class="campo">
                     <label for="anio-nacimiento">Año de nacimiento</label>
-                    <input type="text" id="anio-nacimiento" placeholder="Ej: 1990">
+                    <input type="text" id="anio-nacimiento" placeholder="Ej: 1990" maxlength="4">
                 </div>
                 <div class="campo">
                     <label for="documento">Documento</label>
-                    <input type="text" id="documento" placeholder="Ej: 30123456">
+                    <input type="text" id="documento" placeholder="Ej: 30123456" maxlength="8">
                 </div>
                 <div class="campo">
                     <label for="email">Email</label>
@@ -49,6 +52,17 @@
             <!-- Mensajes de feedback -->
             <div id="mensaje" class="mensaje"></div>
         </section>
+
+        <!-- Administración de la base de datos -->
+        <section class="panel">
+            <div class="encabezado-panel">
+                <h2>Base de datos</h2>
+                <button id="btn-restaurar" class="btn-restaurar">Restaurar DB</button>
+            </div>
+            <p class="descripcion-panel">Vuelve a cargar los socios de ejemplo y descarta todos los cambios guardados.</p>
+        </section>
+
+        </div>
 
         <!-- Buscador, filtro y listado -->
         <section class="panel">

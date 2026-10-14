@@ -32,9 +32,27 @@ body {
 
 /* ===== Layout ===== */
 .contenido {
-    max-width: 1100px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 24px 16px;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+}
+
+/* Columna izquierda*/
+.columna-izquierda {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+ 
+.columna-izquierda .panel:last-child {
+    flex: 1;
+}
+ 
+.columna-izquierda .formulario {
+    grid-template-columns: 1fr;
 }
 
 .panel {
@@ -49,6 +67,22 @@ body {
     font-size: 20px;
     margin-bottom: 16px;
     color: #1e293b;
+}
+
+.encabezado-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+ 
+.encabezado-panel h2 {
+    margin-bottom: 0;
+}
+ 
+.descripcion-panel {
+    font-size: 14px;
+    color: #64748b;
 }
 
 /* ===== Formulario ===== */
@@ -142,6 +176,13 @@ button {
 
 .btn-eliminar:hover {
     background-color: #fecaca;
+}
+
+.btn-restaurar {
+    background-color: #e2e8f0;
+    color: #334155;
+    padding: 10px 16px;
+    font-size: 14px;
 }
 
 /* ===== Mensajes de feedback ===== */
