@@ -21,19 +21,24 @@ const anioActual = 2026;
 //// Key con la que se guardan los socios en el localStorage
 const claveStorage = "socios-gimnasio";
 
-//// Función para verificar si un texto contiene números
-function contieneNumeros(texto) {
+//// Función para verificar si un texto tiene solo letras y espacios
+function esSoloLetras(texto) {
+    let tieneLetra = false;
     for (const caracter of texto) {
-        if (caracter !== " " && !isNaN(caracter)) {
-            return true;
+        const esLetra = caracter.toLowerCase() !== caracter.toUpperCase();
+        if (!esLetra && caracter !== " ") {
+            return false;
+        }
+        if (esLetra) {
+            tieneLetra = true;
         }
     }
-    return false;
+    return tieneLetra;
 }
 
 //// Función para validar un texto
 function esTextoValido(valor) {
-    return valor !== "" && !contieneNumeros(valor);
+    return valor !== "" && esSoloLetras(valor);
 }
 
 //// Función para validar un número
@@ -274,6 +279,7 @@ function guardarSocios() {
 
 //// Función para restaurar la base de datos con los socios de ejemplo
 function restaurarBaseDeDatos() {
+    localStorage.clear();
     socios = crearSociosIniciales();
     guardarSocios();
     salirDeEdicion();
