@@ -17,85 +17,146 @@
 
     <main class="contenido">
 
-        <!-- Columna izquierda: módulos de gestión -->
-        <div class="columna-izquierda">
+<!-- Columna izquierda: módulos de gestión y avisos-->
+        <div class="columna columna-izquierda">
 
-        <!-- Formulario para agregar y modificar socios -->
-        <section class="panel">
-            <h2 id="titulo-formulario">Nuevo socio</h2>
-            <div class="formulario">
-                <div class="campo">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" placeholder="Ej: Juan">
-                </div>
-                <div class="campo">
-                    <label for="apellido">Apellido</label>
-                    <input type="text" id="apellido" placeholder="Ej: Pérez">
-                </div>
-                <div class="campo">
-                    <label for="anio-nacimiento">Año de nacimiento</label>
-                    <input type="text" id="anio-nacimiento" placeholder="Ej: 1990" maxlength="4">
-                </div>
-                <div class="campo">
-                    <label for="documento">Documento</label>
-                    <input type="text" id="documento" placeholder="Ej: 30123456" maxlength="8">
-                </div>
-                <div class="campo">
-                    <label for="email">Email</label>
-                    <input type="text" id="email" placeholder="Ej: juan@mail.com">
-                </div>
-            </div>
-            <div class="acciones-formulario">
-                <button id="btn-guardar" class="btn-guardar">+ Agregar socio</button>
-                <button id="btn-cancelar" class="btn-cancelar" hidden>Cancelar</button>
-            </div>
-            <!-- Mensajes de feedback -->
-            <div id="mensaje" class="mensaje"></div>
-        </section>
+            <!-- Avisos y mensajes de feedback -->
+            <section class="panel panel-avisos">
+                <h2>Avisos</h2>
+                <div id="mensaje" class="mensaje"></div>
+                <!-- Resumen del día según la fecha del sistema -->
+                <ul id="resumen" class="resumen"></ul>
+            </section>
 
-        <!-- Administración de la base de datos -->
-        <section class="panel">
-            <div class="encabezado-panel">
-                <h2>Base de datos</h2>
-                <button id="btn-restaurar" class="btn-restaurar">Restaurar DB</button>
-            </div>
-            <p class="descripcion-panel">Vuelve a cargar los socios de ejemplo y descarta todos los cambios guardados.</p>
-        </section>
-
+<!-- Formulario para agregar y modificar socios -->
+            <section class="panel">
+                <h2 id="titulo-formulario">Nuevo socio</h2>
+                <div class="formulario">
+                    <div class="campo">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" id="nombre" placeholder="Ej: Juan">
+                    </div>
+                    <div class="campo">
+                        <label for="apellido">Apellido</label>
+                        <input type="text" id="apellido" placeholder="Ej: Pérez">
+                    </div>
+                    <div class="campo">
+                        <label for="fecha-nacimiento">Nacimiento</label>
+                        <input type="text" id="fecha-nacimiento" placeholder="25/06/1990" maxlength="10">
+                    </div>
+                    <div class="campo">
+                        <label for="documento">Documento</label>
+                        <input type="text" id="documento" placeholder="Ej: 30123456" maxlength="8">
+                    </div>
+                    <div class="campo campo-ancho">
+                        <label for="email">Email</label>
+                        <input type="text" id="email" placeholder="Ej: juan@mail.com">
+                    </div>
+                    <div class="campo campo-ancho">
+                        <label for="fecha-apto">Último apto físico <span class="opcional">(opcional)</span></label>
+                        <input type="text" id="fecha-apto" placeholder="15/03/2026" maxlength="10">
+                    </div>
+                </div>
+                <div class="acciones-formulario">
+                    <button id="btn-guardar" class="btn-guardar">+ Agregar socio</button>
+                    <button id="btn-cancelar" class="btn-cancelar" hidden>Cancelar</button>
+                </div>
+            </section>
         </div>
 
-        <!-- Buscador, filtro y listado -->
+<!-- Buscador, filtro y listado -->
         <section class="panel">
             <h2>Socios</h2>
             <div class="herramientas">
                 <input type="text" id="buscar" placeholder="Buscar por N° de socio, nombre, documento o email...">
                 <select id="filtro-categoria">
-                    <option value="todas">Todas las cuotas</option>
-                    <option value="Menor">Cuota Menor</option>
-                    <option value="Adulto">Cuota Adulto</option>
-                    <option value="Senior">Cuota Senior</option>
+                    <option value="todas">Todas las Categorias</option>
+                    <option value="Menor">Menor</option>
+                    <option value="Adulto">Adulto</option>
+                    <option value="Senior">Senior</option>
+                </select>
+                <select id="filtro-estado">
+                    <option value="todos">Todos los estados</option>
+                    <option value="Al día">Al día</option>
+                    <option value="Pendiente">Pago pendiente</option>
+                    <option value="Moroso">Morosos</option>
+                    <option value="apto-vencido">Apto vencido</option>
+                    <option value="sin-acceso">Sin acceso</option>
                 </select>
             </div>
             <p id="contador" class="contador"></p>
 
-            <!-- Tabla donde se renderizan los socios -->
+<!-- Tabla donde se renderizan los socios -->
             <div class="tabla-contenedor">
                 <table class="tabla-socios">
                     <thead>
                         <tr>
                             <th>N° socio</th>
-                            <th>Apellido y nombre</th>
+                            <th>Socio</th>
                             <th>Documento</th>
-                            <th>Email</th>
                             <th>Edad</th>
-                            <th>Cuota</th>
+                            <th>Categoria</th>
+                            <th>Último pago</th>
+                            <th>Apto físico</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="cuerpo-tabla"></tbody>
                 </table>
             </div>
+            <p class="leyenda">Las filas marcadas en rojo no tienen acceso al gimnasio (moroso o apto vencido).</p>
         </section>
+
+<!-- fecha del sistema, abonos y base de datos -->
+        <div class="columna columna-derecha">
+            <section class="panel">
+                <h2>Fecha del sistema</h2>
+                <p class="descripcion-panel">Simulá el paso del tiempo para probar vencimientos.</p>
+                <div class="fila-fecha">
+                    <button id="btn-dia-anterior" class="btn-secundario" title="Día anterior">−1</button>
+                    <input type="text" id="fecha-sistema" maxlength="10" placeholder="DD/MM/AAAA">
+                    <button id="btn-dia-siguiente" class="btn-secundario" title="Día siguiente">+1</button>
+                </div>
+                <div class="acciones-fecha">
+                    <button id="btn-aplicar-fecha" class="btn-secundario">Aplicar</button>
+                    <button id="btn-mes-siguiente" class="btn-secundario">+1 mes</button>
+                    <button id="btn-hoy" class="btn-secundario">Hoy</button>
+                </div>
+            </section>
+
+<!-- Valores de abono -->
+            <section class="panel">
+                <h2>Valores de abono</h2>
+                <p class="descripcion-panel">Monto mensual por categoría. Se paga del 1 al 5 de cada mes.</p>
+                <div class="formulario-abonos">
+                    <div class="campo-linea">
+                        <label for="precio-menor">Menor <span class="opcional">(hasta 17)</span></label>
+                        <input type="text" id="precio-menor" placeholder="25000">
+                    </div>
+                    <div class="campo-linea">
+                        <label for="precio-adulto">Adulto <span class="opcional">(18 a 64)</span></label>
+                        <input type="text" id="precio-adulto" placeholder="38000">
+                    </div>
+                    <div class="campo-linea">
+                        <label for="precio-senior">Senior <span class="opcional">(65+)</span></label>
+                        <input type="text" id="precio-senior" placeholder="30000">
+                    </div>
+                </div>
+                <div class="acciones-formulario">
+                    <button id="btn-guardar-precios" class="btn-guardar">Guardar valores</button>
+                </div>
+            </section>
+
+<!-- Administración de la base de datos -->
+            <section class="panel">
+                <div class="encabezado-panel">
+                    <h2>Base de datos</h2>
+                    <button id="btn-restaurar" class="btn-restaurar">Restaurar DB</button>
+                </div>
+                <p class="descripcion-panel">Vuelve a cargar los socios y valores de abono de ejemplo y descarta todos los cambios guardados.</p>
+            </section>
+
+        </div>
 
     </main>
 

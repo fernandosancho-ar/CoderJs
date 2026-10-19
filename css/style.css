@@ -4,73 +4,87 @@
     margin: 0;
     padding: 0;
 }
-
+ 
 body {
     font-family: Arial, Helvetica, sans-serif;
     background-color: #eef1f5;
     color: #1f2937;
 }
-
+ 
 /* ===== Encabezado ===== */
 .encabezado {
     background-color: #1e293b;
     color: #ffffff;
-    padding: 24px 16px;
+    padding: 14px 16px;
     text-align: center;
     border-bottom: 4px solid #f97316;
 }
-
+ 
 .encabezado h1 {
-    font-size: 28px;
+    font-size: 24px;
     letter-spacing: 1px;
 }
-
+ 
 .encabezado p {
     color: #cbd5e1;
-    margin-top: 4px;
+    margin-top: 2px;
+    font-size: 14px;
 }
-
+ 
 /* ===== Layout ===== */
 .contenido {
-    max-width: 1600px;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 24px 16px;
+    padding: 16px;
     display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 24px;
+    grid-template-columns: 300px minmax(0, 1fr) 290px;
+    gap: 16px;
+    align-items: start;
 }
-
-/* Columna izquierda*/
-.columna-izquierda {
+ 
+/* Columnas laterales */
+.columna {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
+    min-width: 0;
 }
  
-.columna-izquierda .panel:last-child {
-    flex: 1;
-}
- 
-.columna-izquierda .formulario {
-    grid-template-columns: 1fr;
-}
-
 .panel {
     background-color: #ffffff;
     border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 24px;
+    padding: 16px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    min-width: 0;
 }
-
+ 
 .panel h2 {
-    font-size: 20px;
-    margin-bottom: 16px;
+    font-size: 17px;
+    margin-bottom: 12px;
     color: #1e293b;
 }
-
+ 
+/* Módulo de avisos */
+.panel-avisos {
+    border-top: 4px solid #f97316;
+}
+ 
+.panel-avisos .resumen {
+    margin-top: 0;
+}
+ 
+.panel-avisos .mensaje:not(:empty) + .resumen {
+    margin-top: 10px;
+}
+ 
+.aviso-cumple {
+    color: #9a3412;
+    font-weight: bold;
+}
+ 
 .encabezado-panel {
     display: flex;
+    gap: 8px;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
@@ -78,32 +92,82 @@ body {
  
 .encabezado-panel h2 {
     margin-bottom: 0;
+    white-space: nowrap;
 }
  
 .descripcion-panel {
-    font-size: 14px;
+    font-size: 13px;
     color: #64748b;
+    margin-bottom: 10px;
 }
-
+ 
+.encabezado-panel + .descripcion-panel {
+    margin-bottom: 0;
+}
+ 
 /* ===== Formulario ===== */
 .formulario {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
-
+ 
 .campo {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
+    min-width: 0;
 }
-
+ 
+.campo-ancho {
+    grid-column: 1 / -1;
+}
+ 
 .campo label {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
     color: #475569;
 }
-
+ 
+.formulario input {
+    padding: 8px;
+    font-size: 14px;
+    width: 100%;
+}
+ 
+/* Valores de abono etiqueta e input */
+.formulario-abonos {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+ 
+.campo-linea {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+ 
+.campo-linea label {
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: bold;
+    color: #475569;
+}
+ 
+.campo-linea input {
+    width: 96px;
+    padding: 7px 8px;
+    font-size: 14px;
+    text-align: right;
+}
+ 
+.opcional {
+    font-weight: normal;
+    color: #94a3b8;
+}
+ 
 input,
 select {
     padding: 10px;
@@ -111,198 +175,320 @@ select {
     border-radius: 6px;
     font-size: 15px;
 }
-
+ 
 input:focus,
 select:focus {
     outline: 2px solid #f97316;
     border-color: #f97316;
 }
-
+ 
 .acciones-formulario {
     display: flex;
-    gap: 12px;
-    margin-top: 16px;
+    gap: 10px;
+    margin-top: 12px;
     flex-wrap: wrap;
 }
-
+ 
+/* Guardar y Cancelar */
+.columna-izquierda .acciones-formulario button {
+    flex: 1;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+ 
+/* ===== Fecha del sistema ===== */
+.fila-fecha {
+    display: flex;
+    gap: 8px;
+}
+ 
+.fila-fecha input {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 8px;
+}
+ 
+.acciones-fecha {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+ 
+.resumen {
+    list-style: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background-color: #f8fafc;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+ 
 /* ===== Botones ===== */
 button {
     cursor: pointer;
+    white-space: nowrap;
     border: none;
     border-radius: 6px;
     font-size: 15px;
     font-weight: bold;
 }
-
+ 
 .btn-guardar {
     background-color: #f97316;
     color: #ffffff;
-    padding: 11px 20px;
+    padding: 9px 18px;
+    font-size: 14px;
 }
-
+ 
 .btn-guardar:hover {
     background-color: #ea580c;
 }
-
+ 
 .btn-cancelar {
     background-color: #e2e8f0;
     color: #334155;
-    padding: 11px 20px;
+    padding: 9px 18px;
+    font-size: 14px;
 }
-
+ 
 .btn-cancelar:hover {
     background-color: #cbd5e1;
 }
-
+ 
+.btn-secundario {
+    background-color: #e2e8f0;
+    color: #334155;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+ 
+.btn-secundario:hover {
+    background-color: #cbd5e1;
+}
+ 
+.btn-pago,
+.btn-apto,
 .btn-editar,
 .btn-eliminar {
     padding: 6px 10px;
     font-size: 13px;
 }
-
+ 
+.btn-pago {
+    background-color: #dcfce7;
+    color: #166534;
+}
+ 
+.btn-pago:hover {
+    background-color: #bbf7d0;
+}
+ 
+.btn-apto {
+    background-color: #ede9fe;
+    color: #5b21b6;
+}
+ 
+.btn-apto:hover {
+    background-color: #ddd6fe;
+}
+ 
 .btn-editar {
     background-color: #dbeafe;
     color: #1e40af;
 }
-
+ 
 .btn-editar:hover {
     background-color: #bfdbfe;
 }
-
+ 
 .btn-eliminar {
     background-color: #fee2e2;
     color: #b91c1c;
 }
-
+ 
 .btn-eliminar:hover {
     background-color: #fecaca;
 }
-
+ 
 .btn-restaurar {
     background-color: #e2e8f0;
     color: #334155;
-    padding: 10px 16px;
-    font-size: 14px;
+    padding: 7px 10px;
+    font-size: 12px;
 }
-
+ 
+.btn-restaurar:hover {
+    background-color: #fecaca;
+    color: #b91c1c;
+}
+ 
 /* ===== Mensajes de feedback ===== */
 .mensaje {
-    margin-top: 16px;
     border-radius: 6px;
     font-weight: bold;
+    font-size: 14px;
+    line-height: 1.4;
 }
-
+ 
 .mensaje.exito,
 .mensaje.error,
 .mensaje.aviso,
 .mensaje.info {
-    padding: 12px;
+    padding: 10px 12px;
 }
-
+ 
 .mensaje.exito {
     background-color: #dcfce7;
     color: #166534;
     border-left: 4px solid #16a34a;
 }
-
+ 
 .mensaje.error {
     background-color: #fee2e2;
     color: #991b1b;
     border-left: 4px solid #dc2626;
 }
-
+ 
 .mensaje.aviso {
     background-color: #fef3c7;
     color: #92400e;
     border-left: 4px solid #d97706;
 }
-
+ 
 .mensaje.info {
     background-color: #dbeafe;
     color: #1e40af;
     border-left: 4px solid #2563eb;
 }
-
+ 
 /* ===== Buscador y filtro ===== */
 .herramientas {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
 }
-
+ 
+.herramientas input,
+.herramientas select {
+    padding: 8px;
+    font-size: 14px;
+}
+ 
 .herramientas input {
     flex: 1;
     min-width: 200px;
 }
-
+ 
 .contador {
-    margin: 12px 0;
+    margin: 10px 0;
     font-size: 14px;
     color: #64748b;
 }
-
+ 
+.leyenda {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #64748b;
+}
+ 
 /* ===== Tabla de socios ===== */
 .tabla-contenedor {
-    max-height: 480px;
+    max-height: calc(100vh - 275px);
+    min-height: 320px;
     overflow: auto;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
 }
-
+ 
 .tabla-socios {
     width: 100%;
     min-width: 760px;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 13px;
 }
-
+ 
 .tabla-socios th {
     position: sticky;
     top: 0;
+    z-index: 1;
     background-color: #1e293b;
     color: #ffffff;
     text-align: left;
-    padding: 10px 12px;
-    font-size: 13px;
+    padding: 9px 10px;
+    font-size: 12px;
+    white-space: nowrap;
 }
-
+ 
 .tabla-socios td {
-    padding: 8px 12px;
+    padding: 7px 10px;
     border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
 }
-
+ 
 .tabla-socios tbody tr:nth-child(even) {
     background-color: #f8fafc;
 }
-
+ 
 .tabla-socios tbody tr:hover {
     background-color: #fff7ed;
 }
-
+ 
+/* Socios sin acceso */
+.tabla-socios tbody tr.sin-acceso td:first-child {
+    box-shadow: inset 4px 0 0 #dc2626;
+}
+ 
 .col-numero {
     font-weight: bold;
     color: #1e293b;
 }
-
+ 
 .col-acciones {
+    width: 1%;
+}
+ 
+/* Botones de usuario en tabla */
+.acciones-grilla {
+    display: grid;
+    grid-template-columns: repeat(2, 72px);
+    gap: 4px;
+}
+ 
+.acciones-grilla button {
+    padding: 5px 0;
+    font-size: 12px;
+}
+ 
+.detalle {
+    margin-top: 3px;
+    font-size: 12px;
+    color: #64748b;
     white-space: nowrap;
 }
-
-.col-acciones button + button {
-    margin-left: 6px;
+ 
+.cumple {
+    cursor: default;
 }
-
+ 
 .sin-resultados {
     color: #64748b;
     font-style: italic;
     text-align: center;
 }
-
+ 
 /* Resaltado de la fila recién agregada o modificada */
 .tabla-socios tbody tr.resaltado {
     animation: resaltar 2s ease-out;
 }
-
+ 
 @keyframes resaltar {
     from {
         background-color: #bbf7d0;
@@ -311,27 +497,84 @@ button {
         background-color: transparent;
     }
 }
-
-/* ===== Etiquetas de categoría ===== */
-.categoria {
+ 
+/* ===== Etiquetas de categoría y estado ===== */
+.categoria,
+.estado {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 12px;
     font-size: 12px;
     font-weight: bold;
 }
-
+ 
 .categoria.menor {
     background-color: #dbeafe;
     color: #1e40af;
 }
-
+ 
 .categoria.adulto {
     background-color: #dcfce7;
     color: #166534;
 }
-
+ 
 .categoria.senior {
     background-color: #ede9fe;
     color: #5b21b6;
 }
+ 
+.estado.al-dia,
+.estado.vigente {
+    background-color: #dcfce7;
+    color: #166534;
+}
+ 
+.estado.pendiente {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+ 
+.estado.moroso,
+.estado.vencido {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+ 
+/* Laptops grandes */
+@media (max-width: 1600px) {
+    .contenido {
+        grid-template-columns: 270px minmax(0, 1fr) 250px;
+    }
+ 
+    .tabla-socios th,
+    .tabla-socios td {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+}
+ 
+/* Pantallas medianas */
+@media (max-width: 1280px) {
+    .contenido {
+        grid-template-columns: 280px minmax(0, 1fr);
+    }
+ 
+    .columna-derecha {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        align-items: start;
+    }
+}
+ 
+/* Pantallas chicas */
+@media (max-width: 800px) {
+    .contenido {
+        grid-template-columns: 1fr;
+    }
+ 
+    .tabla-contenedor {
+        max-height: 520px;
+    }
+}
+ 
