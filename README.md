@@ -196,9 +196,9 @@ Otras características de la interfaz:
 Como parte de la evolución del proyecto, se prevé incorporar nuevas funcionalidades:
 
 - **Historial de pagos:** registrar y consultar los pagos realizados por cada socio, facilitando el seguimiento de la recaudación mensual.
+- **Morosidad:** dar la opcion de abonar una re inscripcion para socios con mas de 1 mes de deuda.
 - **Gestión de servicios:** asociar prestaciones a cada abono y determinar automáticamente cuáles están disponibles según la categoría del socio.
 - **Autorización de menores:** gestionar las autorizaciones de adultos responsables para socios menores de edad.
-- **Autogestión de socios:** permitir que los usuarios consulten y modifiquen los servicios o abonos asociados a sus cuentas.
 
 Estas funcionalidades forman parte de la planificación futura y no necesariamente se encuentran implementadas en la versión actual.
 

@@ -17,7 +17,7 @@ class Socio {
 const diaLimitePago = 5;
  
 //// Keys con las que se guardan los datos en el localStorage
-const claveStorage = "socios-gimnasio-v2";
+const claveStorage = "socios-gimnasio";
 const claveCuotas = "cuotas-gimnasio";
 
 //// Valores de cuota por defecto
