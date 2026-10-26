@@ -1,6 +1,6 @@
 //// Clase Socio
 class Socio {
-    constructor(id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago) {
+    constructor(id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago) {
         this.id = id;
         this.nombre = nombre;
         this.apellido = apellido;
@@ -9,7 +9,8 @@ class Socio {
         this.email = email;
         this.fechaAlta = fechaAlta;
         this.fechaUltimoApto = fechaUltimoApto;
-        this.fechaUltimoPago = fechaUltimoPago;
+        this.fechaUltimoPago = fechaUltimoPago;   
+        this.ultimoMesPago = ultimoMesPago;       
     }
 }
 
@@ -20,8 +21,17 @@ const diaLimitePago = 5;
 const claveStorage = "socios-gimnasio";
 const claveCuotas = "cuotas-gimnasio";
 
-//// Valores de cuota por defecto
-const preciosIniciales = { Menor: 25000, Adulto: 38000, Senior: 30000 };
+//// Archivo JSON que emula la base de datos inicial (socios y valores de abono)
+const rutaDatos = "./data.json";
+
+//// Demora simulada de la carga
+const demoraSimulada = 800;
+
+//// Colores de las notificaciones Toastify y de los botones SweetAlert2
+const coloresNotificacion = { exito: "#16a34a", error: "#dc2626", aviso: "#d97706", info: "#2563eb" };
+const colorPrincipal = "#f97316";
+const colorPeligro = "#dc2626";
+const colorCancelar = "#64748b";
  
 const nombresMeses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -66,6 +76,29 @@ function nombreMes(fecha) {
     return nombresMeses[fecha.getMonth()];
 }
  
+//// Convierte un mes "MM/AAAA" en un número para poder comparar y sumar meses
+function mesANumero(textoMes) {
+    const [mes, anio] = textoMes.split("/").map(Number);
+    return anio * 12 + (mes - 1);
+}
+
+//// Convierte el número de mes en "MM/AAAA"
+function numeroAMes(numero) {
+    const mes = String((numero % 12) + 1).padStart(2, "0");
+    return `${mes}/${Math.floor(numero / 12)}`;
+}
+
+//// Devuelve el número de mes de una fecha
+function numeroDeMes(fecha) {
+    return fecha.getFullYear() * 12 + fecha.getMonth();
+}
+
+//// Devuelve el nombre y año de un mes "MM/AAAA", por ejemplo "julio 2026"
+function nombreMesCompleto(textoMes) {
+    const [mes, anio] = textoMes.split("/").map(Number);
+    return `${nombresMeses[mes - 1]} ${anio}`;
+}
+
 //// Formatea un monto en pesos
 function formatearMonto(monto) {
     return "$" + monto.toLocaleString("es-AR");
@@ -105,12 +138,11 @@ function aptoVencido(socio, fechaReferencia) {
 
 //// Función para saber el estado de la cuota
 function estadoCuota(socio, fechaReferencia) {
-    if (socio.fechaUltimoPago === null) {
+    if (socio.ultimoMesPago === null) {
         return "Moroso";
     }
-    const pago = textoAFecha(socio.fechaUltimoPago);
-    const mesActual = fechaReferencia.getFullYear() * 12 + fechaReferencia.getMonth();
-    const mesPago = pago.getFullYear() * 12 + pago.getMonth();
+    const mesActual = numeroDeMes(fechaReferencia);
+    const mesPago = mesANumero(socio.ultimoMesPago);
     if (mesPago >= mesActual) {
         return "Al día";
     }
@@ -118,6 +150,24 @@ function estadoCuota(socio, fechaReferencia) {
         return "Pendiente";
     }
     return "Moroso";
+}
+
+//// Función para saber cuántas cuotas debe el socio, contando la del mes actual
+function cuotasAdeudadas(socio, fechaReferencia) {
+    if (socio.ultimoMesPago === null) {
+        return 1;
+    }
+    return Math.max(0, numeroDeMes(fechaReferencia) - mesANumero(socio.ultimoMesPago));
+}
+
+//// Función para saber si el socio tiene que pagar reinscripción:
+function requiereReinscripcion(socio, fechaReferencia) {
+    return socio.ultimoMesPago !== null && cuotasAdeudadas(socio, fechaReferencia) >= 2;
+}
+
+//// Función para saber si el socio tiene que pagar inscripción: es su primer pago
+function requiereInscripcion(socio) {
+    return socio.ultimoMesPago === null;
 }
 
 //// Función para saber si el socio puede ingresar al gimnasio
@@ -264,15 +314,52 @@ function validarDatos(nombre, apellido, fechaNacimiento, documento, email, fecha
         return `Ya existe otro socio con el email ${email}.`;
     }
     if (fechaApto !== "" && (!esFechaValida(fechaApto) || textoAFecha(fechaApto) > fechaSistema)) {
-    return "La fecha del apto físico debe tener formato DD/MM/AAAA y no puede ser posterior a hoy. Si no tiene, dejala vacía.";
+        return "La fecha del apto físico debe tener formato DD/MM/AAAA y no puede ser posterior a hoy. Si no tiene, dejala vacía.";
     }
     return "";
 }
 
-//// Función para mostrar un mensaje de feedback en pantalla 
-function mostrarMensaje(texto, tipo) {
-    mensaje.innerHTML = texto;
-    mensaje.className = "mensaje " + tipo;
+//// Función para mostrar una notificación con Toastify
+function notificar(texto, tipo) {
+    Toastify({
+        text: texto,
+        duration: tipo === "error" ? 6000 : 4000,
+        gravity: "top",
+        position: "left",
+        close: true,
+        stopOnFocus: true,
+        style: { background: coloresNotificacion[tipo] }
+    }).showToast();
+}
+
+//// Función para pedir una confirmación con SweetAlert2. Devuelve true si el usuario acepta
+async function confirmar({ titulo, html, icono = "question", textoConfirmar, peligro = false, textoCancelar = "Cancelar" }) {
+    const resultado = await Swal.fire({
+        title: titulo,
+        html: html,
+        icon: icono,
+        showCancelButton: true,
+        confirmButtonText: textoConfirmar,
+        cancelButtonText: textoCancelar,
+        confirmButtonColor: peligro ? colorPeligro : colorPrincipal,
+        cancelButtonColor: colorCancelar,
+        reverseButtons: true,
+        focusCancel: peligro
+    });
+    return resultado.isConfirmed;
+}
+
+//// Función que arma una tabla de conceptos y montos para mostrar en los cuadros de confirmación
+function crearDesglose(conceptos, total) {
+    const filas = conceptos
+        .map(({ detalle, monto }) => `<tr><td>${detalle}</td><td>${formatearMonto(monto)}</td></tr>`)
+        .join("");
+    return `
+        <table class="desglose">
+            ${filas}
+            <tr class="desglose-total"><td>Total</td><td>${formatearMonto(total)}</td></tr>
+        </table>
+    `;
 }
 
 //// Función para limpiar los inputs del formulario
@@ -306,8 +393,40 @@ function actualizarModoFormulario() {
     botonCancelar.hidden = !editando;
 }
 
+//// Función para saber si el formulario tiene cambios sin guardar mientras se edita un socio
+function hayCambiosSinGuardar() {
+    if (socioEditando === null) {
+        return false;
+    }
+    const { nombre, apellido, fechaNacimiento, documento, email, fechaApto } = leerFormulario();
+    return nombre !== socioEditando.nombre ||
+        apellido !== socioEditando.apellido ||
+        fechaNacimiento !== socioEditando.fechaNacimiento ||
+        documento !== socioEditando.numDocumento ||
+        email !== socioEditando.email ||
+        fechaApto !== (socioEditando.fechaUltimoApto ?? "");
+}
+
+//// Función que pide confirmación antes de descartar cambios sin guardar.
+async function confirmarDescarteDeCambios() {
+    if (!hayCambiosSinGuardar()) {
+        return true;
+    }
+    return await confirmar({
+        titulo: "¿Descartar los cambios?",
+        html: `Modificaste datos del socio N° ${socioEditando.id} que todavía no guardaste.`,
+        icono: "warning",
+        textoConfirmar: "Descartar cambios",
+        textoCancelar: "Seguir editando",
+        peligro: true
+    });
+}
+
 //// Función para pasar el formulario a modo edición con los datos del socio elegido
-function iniciarEdicion(id) {
+async function iniciarEdicion(id) {
+    if (!(await confirmarDescarteDeCambios())) {
+        return;
+    }
     socioEditando = socios.find((socio) => socio.id === id);
     const { nombre, apellido, fechaNacimiento, numDocumento, email, fechaUltimoApto } = socioEditando;
     inputNombre.value = nombre;
@@ -317,12 +436,11 @@ function iniciarEdicion(id) {
     inputEmail.value = email;
     inputApto.value = fechaUltimoApto ?? "";
     actualizarModoFormulario();
-    mostrarMensaje(`Editando a ${nombre} ${apellido}. Modificá los datos y presioná "Guardar cambios".`, "info");
+    notificar(`Editando a ${nombre} ${apellido}. Modificá los datos y presioná "Guardar cambios".`, "info");
     inputNombre.focus();
-//// Si la edición sigue abierta después de 10 segundos, se muestra un aviso (Entrega9)
     clearTimeout(temporizadorEdicion);
     temporizadorEdicion = setTimeout(() => {
-        mostrarMensaje(`La edición del socio N° ${id} sigue abierta. Guardá o cancelá los cambios para evitar modificaciones involuntarias.`, "aviso");
+        notificar(`La edición del socio N° ${id} sigue abierta. Guardá o cancelá los cambios para evitar modificaciones involuntarias.`, "aviso");
     }, 10000);
 }
 
@@ -335,22 +453,23 @@ function salirDeEdicion() {
 }
 
 //// Función para cancelar la edición sin guardar cambios
-function cancelarEdicion() {
+async function cancelarEdicion() {
+    if (!(await confirmarDescarteDeCambios())) {
+        return;
+    }
     salirDeEdicion();
-    mostrarMensaje("Se canceló la edición. No se guardaron cambios.", "aviso");
+    notificar("Se canceló la edición. No se guardaron cambios.", "aviso");
 }
 
 //// Función para guardar el formulario 
 function guardarSocio() {
     const { nombre, apellido, fechaNacimiento, documento, email, fechaApto } = leerFormulario();
     const idExcluido = socioEditando?.id ?? null;
- 
     const error = validarDatos(nombre, apellido, fechaNacimiento, documento, email, fechaApto, idExcluido);
     if (error !== "") {
-        mostrarMensaje(error, "error");
+        notificar(error, "error");
         return;
     }
- 
     if (socioEditando === null) {
         const nuevoSocio = new Socio(
             generarNuevoId(socios),
@@ -361,11 +480,12 @@ function guardarSocio() {
             email,
             fechaATexto(fechaSistema),
             fechaApto === "" ? null : fechaApto,
-            null
+            null,   // fechaUltimoPago
+            null    // ultimoMesPago
         );
         socios.push(nuevoSocio);
         idResaltado = nuevoSocio.id;
-        mostrarMensaje(`Se agregó a ${nombre} ${apellido} como socio N° ${nuevoSocio.id}. Registrá el primer pago con el botón "Pago".`, "exito");
+        notificar(`Se agregó a ${nombre} ${apellido} como socio N° ${nuevoSocio.id}. Registrá el primer pago (incluye inscripción) con el botón "Pago".`, "exito");
     } else {
         socioEditando.nombre = nombre;
         socioEditando.apellido = apellido;
@@ -374,17 +494,27 @@ function guardarSocio() {
         socioEditando.email = email;
         socioEditando.fechaUltimoApto = fechaApto === "" ? null : fechaApto;
         idResaltado = socioEditando.id;
-        mostrarMensaje(`Se guardaron los cambios del socio N° ${socioEditando.id}.`, "exito");
+        notificar(`Se guardaron los cambios del socio N° ${socioEditando.id}.`, "exito");
     }
     guardarSocios();
     salirDeEdicion();
     aplicarFiltros();
 }
  
-//// Función para eliminar un socio por su número de socio 
-function eliminarSocio(id) {
+//// Función para eliminar un socio por su número de socio, previa confirmación
+async function eliminarSocio(id) {
     const socioEncontrado = socios.find((socio) => socio.id === id);
     const { nombre, apellido } = socioEncontrado;
+    const confirmado = await confirmar({
+        titulo: "¿Eliminar socio?",
+        html: `Se va a eliminar a <strong>${nombre} ${apellido}</strong> (socio N° ${id}).<br>Esta acción no se puede deshacer.`,
+        icono: "warning",
+        textoConfirmar: "Sí, eliminar",
+        peligro: true
+    });
+    if (!confirmado) {
+        return;
+    }
     if (socioEditando?.id === id) {
         salirDeEdicion();
     }
@@ -392,29 +522,47 @@ function eliminarSocio(id) {
     socios.splice(posicion, 1);
     guardarSocios();
     aplicarFiltros();
-    mostrarMensaje(`Se eliminó al socio N° ${id}, ${nombre} ${apellido}.`, "aviso");
+    notificar(`Se eliminó al socio N° ${id}, ${nombre} ${apellido}.`, "aviso");
 }
 
-//// Función para registrar el pago de la cuota del mes en la fecha del sistema
-function registrarPago(id) {
+//// Función para registrar el pago de la cuota del mes actual.
+async function registrarPago(id) {
     const socio = socios.find((socioRegistrado) => socioRegistrado.id === id);
     const { nombre, apellido } = socio;
     if (estadoCuota(socio, fechaSistema) === "Al día") {
-        mostrarMensaje(`${nombre} ${apellido} ya tiene paga la cuota de ${nombreMes(fechaSistema)}.`, "aviso");
+        notificar(`${nombre} ${apellido} ya tiene paga la cuota de ${nombreMes(fechaSistema)}.`, "aviso");
         return;
     }
     const categoria = categoriaCuota(calcularEdad(socio, fechaSistema));
-    const monto = precios[categoria];
-    const fueraDeTermino = fechaSistema.getDate() > diaLimitePago;
+    const conceptos = [{ detalle: `Cuota ${categoria} de ${nombreMes(fechaSistema)}`, monto: precios[categoria] }];
+    if (requiereInscripcion(socio)) {
+        conceptos.push({ detalle: "Inscripción", monto: precios.Inscripcion });
+    }
+    if (requiereReinscripcion(socio, fechaSistema)) {
+        conceptos.push({ detalle: "Reinscripción", monto: precios.Reinscripcion });
+    }
+    const total = conceptos.reduce((suma, { monto }) => suma + monto, 0);
+    const confirmado = await confirmar({
+        titulo: "Registrar pago",
+        html: `<p>${nombre} ${apellido} · Socio N° ${id}</p>${crearDesglose(conceptos, total)}`,
+        textoConfirmar: `Cobrar ${formatearMonto(total)}`
+    });
+    if (!confirmado) {
+        return;
+    }
+    const estabaMoroso = estadoCuota(socio, fechaSistema) === "Moroso" && !requiereInscripcion(socio);
+    socio.ultimoMesPago = numeroAMes(numeroDeMes(fechaSistema));
     socio.fechaUltimoPago = fechaATexto(fechaSistema);
     idResaltado = id;
     guardarSocios();
     aplicarFiltros();
-    mostrarMensaje(
-        `Se registró el pago de ${nombre} ${apellido}: cuota ${categoria} de ${nombreMes(fechaSistema)}, ${formatearMonto(monto)}.` +
-        (fueraDeTermino ? " Pago fuera de término: se rehabilita el acceso." : ""),
-        "exito"
-    );
+    let detalleAcceso = "";
+    if (aptoVencido(socio, fechaSistema)) {
+        detalleAcceso = " Todavía no tiene acceso: el apto físico está vencido.";
+    } else if (estabaMoroso) {
+        detalleAcceso = " Se rehabilita el acceso.";
+    }
+    notificar(`Pago registrado: ${nombre} ${apellido}, ${formatearMonto(total)}.${detalleAcceso}`, "exito");
 }
 
 //// Función para registrar un apto físico nuevo con la fecha del sistema
@@ -425,7 +573,7 @@ function registrarApto(id) {
     idResaltado = id;
     guardarSocios();
     aplicarFiltros();
-    mostrarMensaje(`Se registró el apto físico de ${nombre} ${apellido}. Vence el ${fechaATexto(vencimientoApto(socio))}.`, "exito");
+    notificar(`Se registró el apto físico de ${nombre} ${apellido}. Vence el ${fechaATexto(vencimientoApto(socio))}.`, "exito");
 }
 
 //// Función para cambiar la fecha con la que se trabaja
@@ -439,12 +587,12 @@ function cambiarFechaSistema(nuevaFecha) {
 function aplicarFechaEscrita() {
     const texto = inputFechaSistema.value;
     if (!esFechaValida(texto)) {
-        mostrarMensaje("La fecha del sistema no es válida. Usá el formato DD/MM/AAAA.", "error");
+        notificar("La fecha del sistema no es válida. Usá el formato DD/MM/AAAA.", "error");
         inputFechaSistema.value = fechaATexto(fechaSistema);
         return;
     }
     cambiarFechaSistema(textoAFecha(texto));
-    mostrarMensaje(`Fecha del sistema: ${texto}.`, "info");
+    notificar(`Fecha del sistema: ${texto}.`, "info");
 }
 
 //// Función para mover la fecha del sistema x días
@@ -464,7 +612,7 @@ function avanzarMes() {
     cambiarFechaSistema(nuevaFecha);
 }
 
-//// Función para mostrar el resumen del día en el módulo de avisos
+//// Función para mostrar el resumen del día
 function actualizarResumen() {
     const pendientes = filtrarPorEstado(socios, "Pendiente").length;
     const morosos = filtrarPorEstado(socios, "Moroso").length;
@@ -487,41 +635,60 @@ function actualizarResumen() {
 
 //// Función para mostrar los valores de abono en los inputs
 function mostrarPrecios() {
-    inputPrecioMenor.value = precios.Menor;
-    inputPrecioAdulto.value = precios.Adulto;
-    inputPrecioSenior.value = precios.Senior;
+    conceptosAbono.forEach(({ clave, input }) => {
+        input.value = precios[clave];
+    });
 }
 
-//// Función para guardar los valores de abono editados
-function guardarValoresCuota() {
-    const valores = {
-        Menor: inputPrecioMenor.value,
-        Adulto: inputPrecioAdulto.value,
-        Senior: inputPrecioSenior.value
-    };
-    for (const [categoria, valor] of Object.entries(valores)) {
-        if (!esNumeroValido(valor) || parseInt(valor) <= 0) {
-            mostrarMensaje(`El valor del abono ${categoria} debe ser un número mayor a 0, sin puntos ni signos.`, "error");
+//// Función para guardar los valores de abono editados, previa confirmación de los cambios
+async function guardarValoresCuota() {
+    const nuevos = {};
+//// Se usa for...of (y no forEach) porque si un valor es inválido hay que cortar la función con return
+    for (const { clave, etiqueta, input } of conceptosAbono) {
+        if (!esNumeroValido(input.value) || parseInt(input.value) <= 0) {
+            notificar(`El valor de ${etiqueta} debe ser un número mayor a 0, sin puntos ni signos.`, "error");
+            input.focus();
             return;
         }
+        nuevos[clave] = parseInt(input.value);
     }
-    precios = {
-        Menor: parseInt(valores.Menor),
-        Adulto: parseInt(valores.Adulto),
-        Senior: parseInt(valores.Senior)
-    };
+    const cambios = conceptosAbono.filter(({ clave }) => nuevos[clave] !== precios[clave]);
+    if (cambios.length === 0) {
+        notificar("No hay cambios en los valores de abono.", "info");
+        return;
+    }
+    const filas = cambios
+        .map(({ clave, etiqueta }) => `<tr><td>${etiqueta}</td><td>${formatearMonto(precios[clave])} → <strong>${formatearMonto(nuevos[clave])}</strong></td></tr>`)
+        .join("");
+    const confirmado = await confirmar({
+        titulo: "¿Actualizar valores de abono?",
+        html: `<table class="desglose">${filas}</table><p class="nota-swal">Los nuevos valores se aplican a los próximos pagos.</p>`,
+        textoConfirmar: "Guardar valores"
+    });
+    if (!confirmado) {
+        mostrarPrecios();
+        return;
+    }
+    precios = { ...precios, ...nuevos };
     guardarPrecios();
     aplicarFiltros();
-    mostrarMensaje("Se actualizaron los valores de abono. Se aplican a los próximos pagos.", "exito");
+    notificar("Se actualizaron los valores de abono. Se aplican a los próximos pagos.", "exito");
 }
 
-//// Función para leer los socios guardados en el localStorage
-function cargarSocios() {
-    const sociosGuardados = JSON.parse(localStorage.getItem(claveStorage));
-    return sociosGuardados?.map(
-        ({ id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago }) =>
-            new Socio(id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago)
-    ) ?? crearSociosIniciales();
+//// Función para convertir los datos de un socio (del JSON o del localStorage) en un objeto Socio
+function crearSocio({ id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago }) {
+    return new Socio(id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago);
+}
+
+//// Función para leer un dato del localStorage. Si está dañado, lo descarta y devuelve null
+function leerDelStorage(clave) {
+    try {
+        return JSON.parse(localStorage.getItem(clave));
+    } catch (error) {
+        localStorage.removeItem(clave);
+        notificar("Algunos datos guardados estaban dañados y se descartaron.", "aviso");
+        return null;
+    }
 }
 
 //// Función para guardar el array de socios en el localStorage
@@ -529,60 +696,106 @@ function guardarSocios() {
     localStorage.setItem(claveStorage, JSON.stringify(socios));
 }
 
-//// Función para leer los valores de cuota guardados
-function cargarPrecios() {
-    const preciosGuardados = JSON.parse(localStorage.getItem(claveCuotas));
-    return preciosGuardados ?? { ...preciosIniciales };
-}
-
-//// Función para guardar los valores de cuota
+//// Función para guardar los valores de abono en el localStorage
 function guardarPrecios() {
     localStorage.setItem(claveCuotas, JSON.stringify(precios));
 }
 
-//// Función para restaurar la base de datos con los socios y valores de ejemplo
-function restaurarBaseDeDatos() {
-    localStorage.clear();
-    socios = crearSociosIniciales();
-    precios = { ...preciosIniciales };
-    guardarSocios();
-    guardarPrecios();
-    mostrarPrecios();
+//// Función que devuelve una promesa que se resuelve después de x milisegundos
+function esperar(milisegundos) {
+    return new Promise((resolve) => setTimeout(resolve, milisegundos));
+}
+
+//// Función para traer los datos iniciales desde el archivo JSON con fetch
+async function obtenerDatosIniciales() {
+    await esperar(demoraSimulada);
+    const respuesta = await fetch(rutaDatos);
+    if (!respuesta.ok) {
+        throw new Error(`No se encontró el archivo ${rutaDatos} (error ${respuesta.status}).`);
+    }
+    const datos = await respuesta.json();
+    if (datos.socios === undefined || datos.abonos === undefined) {
+        throw new Error(`El archivo ${rutaDatos} no tiene el formato esperado.`);
+    }
+    return datos;
+}
+
+//// Función para mostrar el estado "Cargando..." y bloquear los controles mientras tanto
+function mostrarCargando() {
+    contenido.classList.add("cargando");
+    cuerpoTabla.innerHTML = `
+        <tr><td colspan="8" class="estado-carga"><span class="spinner"></span> Cargando socios...</td></tr>
+    `;
+    contador.innerHTML = "";
+    resumen.innerHTML = `<li>Cargando datos...</li>`;
+}
+
+//// Función para mostrar en la tabla que la carga falló
+function mostrarErrorCarga(error) {
+    cuerpoTabla.innerHTML = `
+        <tr><td colspan="8" class="estado-carga error-carga">
+            No se pudieron cargar los socios.
+            <div class="detalle">${error.message}</div>
+        </td></tr>
+    `;
+    resumen.innerHTML = `<li>Sin datos para mostrar.</li>`;
+}
+
+//// Función para cargar los datos: trae data.json y, si hay cambios guardados en el localStorage, usa esos.
+async function cargarDatos() {
+    mostrarCargando();
+    try {
+        const datos = await obtenerDatosIniciales();
+        const sociosGuardados = leerDelStorage(claveStorage);
+        const preciosGuardados = leerDelStorage(claveCuotas);
+        socios = (sociosGuardados ?? datos.socios).map(crearSocio);
+        precios = { ...datos.abonos, ...preciosGuardados };
+        guardarSocios();
+        guardarPrecios();
+        contenido.classList.remove("cargando");
+        mostrarPrecios();
+        aplicarFiltros();
+        if (sociosGuardados === null) {
+            notificar(`Se cargaron ${socios.length} socios desde ${rutaDatos}.`, "info");
+        }
+        return true;
+    } catch (error) {
+        mostrarErrorCarga(error);
+        const resultado = await Swal.fire({
+            title: "No se pudieron cargar los datos",
+            html: `Revisá tu conexión o que el archivo exista y volvé a intentar.<p class="nota-swal">${error.message}</p>`,
+            icon: "error",
+            confirmButtonText: "Reintentar",
+            confirmButtonColor: colorPrincipal,
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
+        if (resultado.isConfirmed) {
+            return await cargarDatos();
+        }
+        return false;
+    }
+}
+
+//// Función para restaurar la base de datos desde data.json, previa confirmación
+async function restaurarBaseDeDatos() {
+    const confirmado = await confirmar({
+        titulo: "¿Restaurar la base de datos?",
+        html: `Se van a borrar <strong>todos los cambios guardados</strong> (altas, bajas, pagos, aptos y valores de abono) y se vuelven a cargar los datos de <code>${rutaDatos}</code>.`,
+        icono: "warning",
+        textoConfirmar: "Sí, restaurar",
+        peligro: true
+    });
+    if (!confirmado) {
+        return;
+    }
     salirDeEdicion();
-    aplicarFiltros();
-    mostrarMensaje("Se restauró la base de datos con los socios y valores de abono de ejemplo.", "aviso");
+    localStorage.clear();
+    await cargarDatos();
 }
 
-//// Creación de objetos Socio. El id es el número de socio y empieza en 10000.
-function crearSociosIniciales() {
-    return [
-    new Socio(10000, "Carlos", "Escudero", "14/03/1985", "32123456", "carlos.escudero@mail.com", "10/03/2015", "12/02/2026", "02/10/2026"),
-    new Socio(10001, "Lucia", "Fernandez", "22/07/2000", "40123456", "lucia.fernandez@mail.com", "22/07/2019", "05/06/2026", "05/10/2026"),
-    new Socio(10002, "Jorge", "Gonzalez", "08/11/1970", "25123456", "jorge.gonzalez@mail.com", "15/01/2008", "20/09/2025", "03/08/2026"),
-    new Socio(10003, "Mariana", "Rodriguez", "30/05/1982", "27456789", "mariana.rodriguez@mail.com", "30/05/2012", "11/03/2026", "01/10/2026"),
-    new Socio(10004, "Carlos", "Fernandez", "18/02/1990", "30987654", "carlos.fernandez@mail.com", "18/02/2020", "25/11/2025", "04/09/2026"),
-    new Socio(10005, "Lucia", "Martinez", "03/04/2012", "52123456", "lucia.martinez@mail.com", "01/03/2022", "15/02/2026", "03/10/2026"),
-    new Socio(10006, "Diego", "Ramirez", "12/09/1958", "16345678", "diego.ramirez@mail.com", "12/09/1995", "02/08/2025", "03/10/2026"),
-    new Socio(10007, "Sofia", "Perez", "19/10/1995", "38456789", "sofia.perez@mail.com", "08/11/2021", "14/04/2026", "10/07/2026"),
-    new Socio(10008, "Martin", "Lopez", "14/04/2010", "50987123", "martin.lopez@mail.com", "14/04/2018", "20/01/2026", "06/10/2026"),
-    new Socio(10009, "Ana", "Sosa", "25/06/1955", "11456321", "ana.sosa@mail.com", "25/06/1990", "30/12/2025", "02/10/2026"),
-    new Socio(10010, "Pablo", "Acosta", "20/01/1998", "41234987", "pablo.acosta@mail.com", "20/01/2023", null, "08/09/2026"),
-    new Socio(10011, "Valeria", "Romero", "05/10/1947", "5456123", "valeria.romero@mail.com", "05/10/1985", "10/05/2026", "04/10/2026"),
-    new Socio(10012, "Federico", "Castro", "17/08/1992", "36789123", "federico.castro@mail.com", "17/08/2016", "03/07/2026", "05/06/2026"),
-    new Socio(10013, "Camila", "Diaz", "12/02/2001", "42987654", "camila.diaz@mail.com", "12/02/2024", "12/02/2026", "09/10/2026"),
-    new Socio(10014, "Roberto", "Alvarez", "28/03/1965", "18765432", "roberto.alvarez@mail.com", "28/03/2002", "15/10/2025", "01/10/2026"),
-    new Socio(10015, "Florencia", "Benitez", "03/12/1989", "35678912", "florencia.benitez@mail.com", "03/12/2014", "21/08/2026", "02/09/2026"),
-    new Socio(10016, "Nicolas", "Torres", "07/04/1997", "40567891", "nicolas.torres@mail.com", "07/04/2025", "07/04/2025", "08/10/2026"),
-    new Socio(10017, "Gabriela", "Herrera", "19/09/1978", "26345678", "gabriela.herrera@mail.com", "19/09/2010", "22/10/2025", "03/10/2026"),
-    new Socio(10018, "Matias", "Silva", "11/08/2005", "46789123", "matias.silva@mail.com", "11/08/2025", "11/08/2025", "11/08/2026"),
-    new Socio(10019, "Daniela", "Molina", "15/03/2014", "62876543", "daniela.molina@mail.com", "15/03/2023", "18/03/2026", "05/10/2026"),
-    new Socio(10020, "Andres", "Vega", "02/05/1952", "14567891", "andres.vega@mail.com", "02/05/1988", "09/09/2026", "06/05/2026"),
-    new Socio(10021, "Julieta", "Suarez", "21/10/1999", "41876543", "julieta.suarez@mail.com", "01/09/2026", "01/09/2026", "02/10/2026")
-    ];
-}
-
-//// Valores de cuota vigentes
-let precios = { ...preciosIniciales };
+//// Valores de abono vigentes (se cargan desde data.json o del localStorage)
+let precios = {};
  
 //// Fecha con la que trabaja el simulador (arranca en la fecha real de hoy)
 let fechaSistema = fechaDeHoy();
@@ -613,7 +826,7 @@ const inputBuscar = document.getElementById("buscar");
 const selectCategoria = document.getElementById("filtro-categoria");
 const selectEstado = document.getElementById("filtro-estado");
 const cuerpoTabla = document.getElementById("cuerpo-tabla");
-const mensaje = document.getElementById("mensaje");
+const contenido = document.querySelector(".contenido");
 const contador = document.querySelector("#contador");
 const botonRestaurar = document.getElementById("btn-restaurar");
 const inputFechaSistema = document.getElementById("fecha-sistema");
@@ -626,7 +839,18 @@ const resumen = document.getElementById("resumen");
 const inputPrecioMenor = document.getElementById("precio-menor");
 const inputPrecioAdulto = document.getElementById("precio-adulto");
 const inputPrecioSenior = document.getElementById("precio-senior");
+const inputPrecioInscripcion = document.getElementById("precio-inscripcion");
+const inputPrecioReinscripcion = document.getElementById("precio-reinscripcion");
 const botonGuardarPrecios = document.getElementById("btn-guardar-precios");
+
+//// Conceptos de abono: clave en el objeto precios, nombre para mostrar e input del formulario
+const conceptosAbono = [
+    { clave: "Menor", etiqueta: "Menor", input: inputPrecioMenor },
+    { clave: "Adulto", etiqueta: "Adulto", input: inputPrecioAdulto },
+    { clave: "Senior", etiqueta: "Senior", input: inputPrecioSenior },
+    { clave: "Inscripcion", etiqueta: "Inscripción", input: inputPrecioInscripcion },
+    { clave: "Reinscripcion", etiqueta: "Reinscripción", input: inputPrecioReinscripcion }
+];
 
 //// Clases CSS para cada estado de cuota
 const clasesEstado = { "Al día": "al-dia", "Pendiente": "pendiente", "Moroso": "moroso" };
@@ -637,10 +861,17 @@ function renderizarSocios(lista) {
         ? `<tr><td colspan="8" class="sin-resultados">No hay socios para mostrar.</td></tr>`
         : "";
     lista.forEach((socio) => {
-        const { id, nombre, apellido, numDocumento, email, fechaUltimoPago } = socio;
+        const { id, nombre, apellido, numDocumento, email, ultimoMesPago } = socio;
         const edad = calcularEdad(socio, fechaSistema);
         const categoria = categoriaCuota(edad);
         const estado = estadoCuota(socio, fechaSistema);
+        const detallePago = ultimoMesPago === null ? "Sin pagos" : `Pagó hasta ${ultimoMesPago}`;
+        let cargoExtra = "";
+        if (requiereInscripcion(socio)) {
+            cargoExtra = "Debe inscripción";
+        } else if (requiereReinscripcion(socio, fechaSistema)) {
+            cargoExtra = "Debe reinscripción";
+        }
         const apto = aptoVencido(socio, fechaSistema);
         const vencimiento = vencimientoApto(socio);
         const claseFila = [
@@ -665,7 +896,8 @@ function renderizarSocios(lista) {
                 </td>
                 <td>
                     <span class="estado ${clasesEstado[estado]}">${estado}</span>
-                    <div class="detalle">${fechaUltimoPago ?? "Sin pagos"}</div>
+                    <div class="detalle">${detallePago}</div>
+                    ${cargoExtra === "" ? "" : `<div class="detalle detalle-alerta">${cargoExtra}</div>`}
                 </td>
                 <td>
                     <span class="estado ${apto ? "vencido" : "vigente"}">${apto ? "Vencido" : "Vigente"}</span>
@@ -729,7 +961,6 @@ inputsFormulario.forEach((input) => {
         }
     });
 });
-
 inputFechaSistema.addEventListener("keyup", (evento) => {
     if (evento.key === "Enter") {
         aplicarFechaEscrita();
@@ -741,26 +972,15 @@ inputBuscar.addEventListener("keyup", aplicarFiltros);
 selectCategoria.addEventListener("change", aplicarFiltros);
 selectEstado.addEventListener("change", aplicarFiltros);
 
-//// Carga inicial de los socios y renderizado
-try {
-    precios = cargarPrecios();
-    socios = cargarSocios();
-} catch (error) {
-    localStorage.clear();
-    precios = { ...preciosIniciales };
-    socios = crearSociosIniciales();
-    mostrarMensaje(`No se pudieron leer los datos guardados (${error.message}). <br><br> Se restauraron los socios de ejemplo.`, "error");
-} finally {
-    inputFechaSistema.value = fechaATexto(fechaSistema);
-    mostrarPrecios();
-    aplicarFiltros();
-}
+//// Carga inicial: muestra la fecha del sistema y trae los datos de forma asíncrona
+inputFechaSistema.value = fechaATexto(fechaSistema);
+cargarDatos();
 
 /* Recordatorio a trabajar cuando se desarrolle mejor la parte de vencimientos aptos medicos, autorizacion de menores, aranceles, etc
 setTimeout(() => {
-    if (mensaje.innerHTML === "") {
+    {
         const cantidadMenores = filtrarPorCategoria(socios, "Menor").length;
-        mostrarMensaje(
+        notificar(
             cantidadMenores === 0
                 ? "Recordatorio: no hay socios menores de edad registrados."
                 : `Recordatorio: hay ${cantidadMenores} ${cantidadMenores === 1 ? "socio menor" : "socios menores"} de edad. Verificá que tengan la autorización firmada de un adulto responsable.`,

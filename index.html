@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Librerías externas (CDN): Toastify para notificaciones y SweetAlert2 para confirmaciones -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"></script>
     <!-- JS -->
     <script defer src="js/main.js"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -17,14 +21,12 @@
 
     <main class="contenido">
 
-<!-- Columna izquierda: módulos de gestión y avisos-->
+<!-- Columna izquierda: módulos de gestión y Resumen -->
         <div class="columna columna-izquierda">
 
-            <!-- Avisos y mensajes de feedback -->
-            <section class="panel panel-avisos">
-                <h2>Avisos</h2>
-                <div id="mensaje" class="mensaje"></div>
-                <!-- Resumen del día según la fecha del sistema -->
+<!-- Resumen del día según la fecha del sistema -->
+            <section class="panel panel-resumen">
+                <h2>Resumen del día</h2>
                 <ul id="resumen" class="resumen"></ul>
             </section>
 
@@ -64,7 +66,7 @@
             </section>
         </div>
 
-<!-- Buscador, filtro y listado -->
+<!-- Columna central: buscador, filtros y listado -->
         <section class="panel">
             <h2>Socios</h2>
             <div class="herramientas">
@@ -95,8 +97,8 @@
                             <th>Socio</th>
                             <th>Documento</th>
                             <th>Edad</th>
-                            <th>Categoria</th>
-                            <th>Último pago</th>
+                            <th>Cuota</th>
+                            <th>Pagos</th>
                             <th>Apto físico</th>
                             <th>Acciones</th>
                         </tr>
@@ -107,8 +109,10 @@
             <p class="leyenda">Las filas marcadas en rojo no tienen acceso al gimnasio (moroso o apto vencido).</p>
         </section>
 
-<!-- fecha del sistema, abonos y base de datos -->
+<!-- Columna derecha: fecha del sistema, abonos y base de datos -->
         <div class="columna columna-derecha">
+
+<!-- Fecha del sistema para simular el paso del tiempo -->
             <section class="panel">
                 <h2>Fecha del sistema</h2>
                 <p class="descripcion-panel">Simulá el paso del tiempo para probar vencimientos.</p>
@@ -127,7 +131,7 @@
 <!-- Valores de abono -->
             <section class="panel">
                 <h2>Valores de abono</h2>
-                <p class="descripcion-panel">Monto mensual por categoría. Se paga del 1 al 5 de cada mes.</p>
+                <p class="descripcion-panel">Cuota mensual por categoría, se paga del 1 al 5. La inscripción se cobra en el primer pago; la reinscripción, tras un mes completo sin pagar.</p>
                 <div class="formulario-abonos">
                     <div class="campo-linea">
                         <label for="precio-menor">Menor <span class="opcional">(hasta 17)</span></label>
@@ -141,6 +145,14 @@
                         <label for="precio-senior">Senior <span class="opcional">(65+)</span></label>
                         <input type="text" id="precio-senior" placeholder="30000">
                     </div>
+                    <div class="campo-linea">
+                        <label for="precio-inscripcion">Inscripción</label>
+                        <input type="text" id="precio-inscripcion" placeholder="10000">
+                    </div>
+                    <div class="campo-linea">
+                        <label for="precio-reinscripcion">Reinscripción</label>
+                        <input type="text" id="precio-reinscripcion" placeholder="15000">
+                    </div>
                 </div>
                 <div class="acciones-formulario">
                     <button id="btn-guardar-precios" class="btn-guardar">Guardar valores</button>
@@ -153,7 +165,7 @@
                     <h2>Base de datos</h2>
                     <button id="btn-restaurar" class="btn-restaurar">Restaurar DB</button>
                 </div>
-                <p class="descripcion-panel">Vuelve a cargar los socios y valores de abono de ejemplo y descarta todos los cambios guardados.</p>
+                <p class="descripcion-panel">Vuelve a cargar los socios y valores de abono desde data.json y descarta todos los cambios guardados.</p>
             </section>
 
         </div>

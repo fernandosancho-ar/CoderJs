@@ -64,17 +64,13 @@ body {
     color: #1e293b;
 }
  
-/* Módulo de avisos */
-.panel-avisos {
+/* Módulo de resumen del día */
+.panel-resumen {
     border-top: 4px solid #f97316;
 }
  
-.panel-avisos .resumen {
+.panel-resumen .resumen {
     margin-top: 0;
-}
- 
-.panel-avisos .mensaje:not(:empty) + .resumen {
-    margin-top: 10px;
 }
  
 .aviso-cumple {
@@ -330,43 +326,88 @@ button {
     color: #b91c1c;
 }
  
-/* ===== Mensajes de feedback ===== */
-.mensaje {
-    border-radius: 6px;
-    font-weight: bold;
+/* ===== Notificaciones Toastify ===== */
+.toastify {
+    font-family: inherit;
     font-size: 14px;
+    font-weight: bold;
     line-height: 1.4;
+    border-radius: 8px;
+    max-width: 380px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
  
-.mensaje.exito,
-.mensaje.error,
-.mensaje.aviso,
-.mensaje.info {
-    padding: 10px 12px;
+/* ===== Cuadros de confirmación SweetAlert2 ===== */
+.swal2-popup {
+    font-family: inherit;
 }
  
-.mensaje.exito {
-    background-color: #dcfce7;
-    color: #166534;
-    border-left: 4px solid #16a34a;
+.desglose {
+    width: 100%;
+    margin-top: 12px;
+    border-collapse: collapse;
+    font-size: 15px;
+    text-align: left;
 }
  
-.mensaje.error {
-    background-color: #fee2e2;
+.desglose td {
+    padding: 7px 4px;
+    border-bottom: 1px solid #e2e8f0;
+}
+ 
+.desglose td:last-child {
+    text-align: right;
+    white-space: nowrap;
+}
+ 
+.desglose-total td {
+    font-weight: bold;
+    border-bottom: none;
+    border-top: 2px solid #1e293b;
+}
+ 
+.nota-swal {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #64748b;
+}
+ 
+/* ===== Estado de carga de los datos ===== */
+.tabla-socios .estado-carga {
+    padding: 48px 12px;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+}
+ 
+.tabla-socios .error-carga {
     color: #991b1b;
-    border-left: 4px solid #dc2626;
+    font-weight: bold;
 }
  
-.mensaje.aviso {
-    background-color: #fef3c7;
-    color: #92400e;
-    border-left: 4px solid #d97706;
+.spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    vertical-align: middle;
+    border: 3px solid #e2e8f0;
+    border-top-color: #f97316;
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
 }
  
-.mensaje.info {
-    background-color: #dbeafe;
-    color: #1e40af;
-    border-left: 4px solid #2563eb;
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+ 
+/* Mientras cargan los datos, los controles quedan deshabilitados */
+.contenido.cargando .columna,
+.contenido.cargando .herramientas {
+    opacity: 0.5;
+    pointer-events: none;
 }
  
 /* ===== Buscador y filtro ===== */
@@ -474,6 +515,13 @@ button {
     white-space: nowrap;
 }
  
+.detalle-alerta {
+    margin-top: 1px;
+    color: #b45309;
+    font-weight: bold;
+    white-space: normal;
+}
+ 
 .cumple {
     cursor: default;
 }
@@ -548,8 +596,8 @@ button {
  
     .tabla-socios th,
     .tabla-socios td {
-        padding-left: 8px;
-        padding-right: 8px;
+        padding-left: 6px;
+        padding-right: 6px;
     }
 }
  
