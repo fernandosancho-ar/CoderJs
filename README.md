@@ -242,9 +242,15 @@ La estructura actual del proyecto es la siguiente:
 ```text
 CoderJs/
 ├── index.html
-├── data.json
+├── data/
+│   └── data.json
 ├── js/
-│   └── main.js
+│   ├── main.js
+|   ├── socios.js
+|   └── datos.js
+├── assets/
+│   └── HarryTrotterGymPoster.png
+│
 ├── css/
 │   └── style.css
 ├── .gitignore

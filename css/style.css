@@ -31,6 +31,22 @@ body {
     font-size: 14px;
 }
  
+/* Logo y título en la misma línea */
+.marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+}
+ 
+.logo {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+ 
 /* ===== Layout ===== */
 .contenido {
     max-width: 1920px;
@@ -442,7 +458,7 @@ button {
  
 /* ===== Tabla de socios ===== */
 .tabla-contenedor {
-    max-height: calc(100vh - 275px);
+    max-height: calc(100vh - 285px);
     min-height: 320px;
     overflow: auto;
     border: 1px solid #e2e8f0;
@@ -625,4 +641,3 @@ button {
         max-height: 520px;
     }
 }
- 

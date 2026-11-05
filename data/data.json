@@ -1,5 +1,12 @@
 {
   "abonos": { "Menor": 25000, "Adulto": 38000, "Senior": 30000, "Inscripcion": 10000, "Reinscripcion": 15000 },
+  "conceptosAbono": [
+    { "clave": "Menor", "etiqueta": "Menor" },
+    { "clave": "Adulto", "etiqueta": "Adulto" },
+    { "clave": "Senior", "etiqueta": "Senior" },
+    { "clave": "Inscripcion", "etiqueta": "Inscripción" },
+    { "clave": "Reinscripcion", "etiqueta": "Reinscripción" }
+  ],
   "socios": [
     { "id": 10000, "nombre": "Carlos", "apellido": "Escudero", "fechaNacimiento": "14/03/1985", "numDocumento": "32123456", "email": "carlos.escudero@mail.com", "fechaAlta": "10/03/2015", "fechaUltimoApto": "12/02/2026", "fechaUltimoPago": "02/10/2026", "ultimoMesPago": "10/2026" },
     { "id": 10001, "nombre": "Lucia", "apellido": "Fernandez", "fechaNacimiento": "22/07/2000", "numDocumento": "40123456", "email": "lucia.fernandez@mail.com", "fechaAlta": "22/07/2019", "fechaUltimoApto": "05/06/2026", "fechaUltimoPago": "05/10/2026", "ultimoMesPago": "10/2026" },
