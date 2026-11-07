@@ -89,6 +89,7 @@
                     <option value="Moroso">Morosos</option>
                     <option value="apto-vencido">Apto vencido</option>
                     <option value="sin-acceso">Sin acceso</option>
+                    <option value="sin-autorizacion">Menores sin autorización</option>
                 </select>
             </div>
             <p id="contador" class="contador"></p>
@@ -111,7 +112,7 @@
                     <tbody id="cuerpo-tabla"></tbody>
                 </table>
             </div>
-            <p class="leyenda">Las filas marcadas en rojo no tienen acceso al gimnasio (moroso o apto vencido).</p>
+            <p class="leyenda">En rojo: sin acceso (moroso, apto vencido o menor sin autorización). Clic en el nombre para ver la ficha y los pagos.</p>
         </section>
 
 <!-- Columna derecha: fecha del sistema, abonos y base de datos -->
@@ -133,34 +134,14 @@
                 </div>
             </section>
 
-<!-- Valores de abono -->
+<!-- Abonos y recaudación: los valores y el detalle mensual se consultan en cuadros de SweetAlert2 -->
             <section class="panel">
-                <h2>Valores de abono</h2>
-                <p class="descripcion-panel">Cuota mensual por categoría, se paga del 1 al 5. La inscripción se cobra en el primer pago; la reinscripción, tras un mes completo sin pagar.</p>
-                <div class="formulario-abonos">
-                    <div class="campo-linea">
-                        <label for="precio-menor">Menor <span class="opcional">(hasta 17)</span></label>
-                        <input type="text" id="precio-menor" placeholder="25000">
-                    </div>
-                    <div class="campo-linea">
-                        <label for="precio-adulto">Adulto <span class="opcional">(18 a 64)</span></label>
-                        <input type="text" id="precio-adulto" placeholder="38000">
-                    </div>
-                    <div class="campo-linea">
-                        <label for="precio-senior">Senior <span class="opcional">(65+)</span></label>
-                        <input type="text" id="precio-senior" placeholder="30000">
-                    </div>
-                    <div class="campo-linea">
-                        <label for="precio-inscripcion">Inscripción</label>
-                        <input type="text" id="precio-inscripcion" placeholder="10000">
-                    </div>
-                    <div class="campo-linea">
-                        <label for="precio-reinscripcion">Reinscripción</label>
-                        <input type="text" id="precio-reinscripcion" placeholder="15000">
-                    </div>
-                </div>
-                <div class="acciones-formulario">
-                    <button id="btn-guardar-precios" class="btn-guardar">Guardar valores</button>
+                <h2>Abonos y recaudación</h2>
+                <p class="descripcion-panel">Consultá la recaudación mensual y modificá los valores de cuota, inscripción y reinscripción.</p>
+                <p id="recaudacion-mes" class="recaudacion-mes"></p>
+                <div class="acciones-modulo">
+                    <button id="btn-valores-abono" class="btn-secundario">Valores de abono</button>
+                    <button id="btn-recaudacion" class="btn-secundario">Recaudación</button>
                 </div>
             </section>
 
@@ -170,7 +151,7 @@
                     <h2>Base de datos</h2>
                     <button id="btn-restaurar" class="btn-restaurar">Restaurar DB</button>
                 </div>
-                <p class="descripcion-panel">Vuelve a cargar los socios y valores de abono desde data.json y descarta todos los cambios guardados.</p>
+                <p class="descripcion-panel">Vuelve a cargar los socios, pagos y valores de abono desde data.json y descarta todos los cambios guardados.</p>
             </section>
 
         </div>

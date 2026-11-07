@@ -4,15 +4,16 @@
 const claveStorage = "socios-gimnasio";
 const claveCuotas = "cuotas-gimnasio";
 
-//// Archivo JSON que emula la base de datos inicial (socios, valores y conceptos de abono)
+//// Archivo JSON que emula la base de datos inicial (socios con su historial de pagos, valores y conceptos de abono)
 const rutaDatos = "./data/data.json";
 
 //// Demora simulada de la carga
 const demoraSimulada = 800;
 
-//// Función para convertir los datos de un socio (del JSON o del localStorage) en un objeto Socio
-function crearSocio({ id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago }) {
-    return new Socio(id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago);
+//// Función para convertir los datos de un socio (del JSON o del localStorage) en un objeto Socio.
+//// Los valores por defecto cubren datos guardados con una versión anterior, que no tenían autorización ni pagos
+function crearSocio({ id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago, autorizacion = null, pagos = [] }) {
+    return new Socio(id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago, autorizacion, pagos);
 }
 
 //// Función para leer un dato del localStorage. Si está dañado, lo descarta y devuelve null
@@ -65,16 +66,10 @@ async function cargarDatos() {
         const preciosGuardados = leerDelStorage(claveCuotas);
         socios = (sociosGuardados ?? datos.socios).map(crearSocio);
         precios = { ...datos.abonos, ...preciosGuardados };
-//// A cada concepto de abono del JSON se le suma su input del formulario (id "precio-" + clave en minúsculas)
-        conceptosAbono = datos.conceptosAbono.map(({ clave, etiqueta }) => ({
-            clave,
-            etiqueta,
-            input: document.getElementById(`precio-${clave.toLowerCase()}`)
-        }));
+        conceptosAbono = datos.conceptosAbono;
         guardarSocios();
         guardarPrecios();
         datosCargados = true;
-        mostrarPrecios();
         aplicarFiltros();
         if (sociosGuardados === null) {
             notificar(`Se cargaron ${socios.length} socios desde ${rutaDatos}.`, "info");

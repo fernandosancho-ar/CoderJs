@@ -2,7 +2,7 @@
 
 //// Clase Socio
 class Socio {
-    constructor(id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago) {
+    constructor(id, nombre, apellido, fechaNacimiento, numDocumento, email, fechaAlta, fechaUltimoApto, fechaUltimoPago, ultimoMesPago, autorizacion, pagos) {
         this.id = id;
         this.nombre = nombre;
         this.apellido = apellido;
@@ -13,6 +13,8 @@ class Socio {
         this.fechaUltimoApto = fechaUltimoApto;
         this.fechaUltimoPago = fechaUltimoPago;   
         this.ultimoMesPago = ultimoMesPago;       
+        this.autorizacion = autorizacion;   // { nombre, apellido, numDocumento, email, fecha } o null
+        this.pagos = pagos;                 // historial: [{ fecha, mes, categoria, conceptos, total }]
     }
 }
 
@@ -156,9 +158,21 @@ function requiereInscripcion(socio) {
     return socio.ultimoMesPago === null;
 }
 
+//// Función para saber si el socio necesita la autorización de un adulto responsable (es menor de edad)
+function requiereAutorizacion(socio, fechaReferencia) {
+    return categoriaCuota(calcularEdad(socio, fechaReferencia)) === "Menor";
+}
+
+//// Función para saber si es un menor que todavía no tiene la autorización cargada
+function autorizacionPendiente(socio, fechaReferencia) {
+    return requiereAutorizacion(socio, fechaReferencia) && socio.autorizacion === null;
+}
+
 //// Función para saber si el socio puede ingresar al gimnasio
 function tieneAcceso(socio, fechaReferencia) {
-    return estadoCuota(socio, fechaReferencia) !== "Moroso" && !aptoVencido(socio, fechaReferencia);
+    return estadoCuota(socio, fechaReferencia) !== "Moroso" &&
+        !aptoVencido(socio, fechaReferencia) &&
+        !autorizacionPendiente(socio, fechaReferencia);
 }
 
 //// Función para verificar si un texto tiene solo letras y espacios
@@ -255,6 +269,9 @@ function filtrarPorEstado(lista, estado) {
         if (estado === "sin-acceso") {
             return !tieneAcceso(socio, fechaSistema);
         }
+        if (estado === "sin-autorizacion") {
+            return autorizacionPendiente(socio, fechaSistema);
+        }
         return estadoCuota(socio, fechaSistema) === estado;
     });
 }
@@ -269,6 +286,31 @@ function buscarPorTexto(lista, texto) {
             numDocumento.includes(texto) ||
             email.includes(texto);
     });
+}
+
+//// Función que junta en un solo array los pagos de todos los socios
+function obtenerTodosLosPagos(lista) {
+    const todosLosPagos = [];
+    lista.forEach(({ pagos }) => todosLosPagos.push(...pagos));
+    return todosLosPagos;
+}
+
+//// Función que calcula la cantidad de pagos y el total cobrado en un mes "MM/AAAA" (según la fecha de cada pago)
+function recaudacionDelMes(pagos, mes) {
+    const pagosDelMes = pagos.filter(({ fecha }) => fecha.slice(3) === mes);
+    return {
+        cantidad: pagosDelMes.length,
+        total: pagosDelMes.reduce((suma, { total }) => suma + total, 0)
+    };
+}
+
+//// Función que cuenta los socios que no pagaron la cuota de un mes "MM/AAAA" (pendientes y morosos).
+//// Solo cuenta a los que ya estaban dados de alta en ese mes
+function sociosSinPagar(lista, mes) {
+    return lista.filter(({ fechaAlta, pagos }) =>
+        mesANumero(fechaAlta.slice(3)) <= mesANumero(mes) &&
+        !pagos.some((pago) => pago.mes === mes)
+    ).length;
 }
 
 //// Función para validar los datos del formulario 
@@ -301,6 +343,27 @@ function validarDatos(nombre, apellido, fechaNacimiento, documento, email, fecha
     }
     if (fechaApto !== "" && (!esFechaValida(fechaApto) || textoAFecha(fechaApto) > fechaSistema)) {
         return "La fecha del apto físico debe tener formato DD/MM/AAAA y no puede ser posterior a hoy. Si no tiene, dejala vacía.";
+    }
+    return "";
+}
+
+//// Función para validar los datos del adulto responsable de un menor.
+//// Usa las mismas validaciones que el alta de socios
+function validarAutorizacion(nombre, apellido, documento, email) {
+    if (hayCamposVacios(nombre, apellido, documento, email)) {
+        return "Completá todos los datos del adulto responsable.";
+    }
+    if (!esTextoValido(nombre)) {
+        return "El nombre es obligatorio y solo puede contener letras.";
+    }
+    if (!esTextoValido(apellido)) {
+        return "El apellido es obligatorio y solo puede contener letras.";
+    }
+    if (!esNumeroValido(documento) || documento.length < 7 || documento.length > 8) {
+        return "El documento debe tener 7 u 8 dígitos, sin puntos, signos ni espacios.";
+    }
+    if (!esEmailValido(email)) {
+        return "El email no es válido. Debe tener el formato nombre@dominio.com.";
     }
     return "";
 }

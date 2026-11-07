@@ -6,6 +6,9 @@ const colorPrincipal = "#f97316";
 const colorPeligro = "#dc2626";
 const colorCancelar = "#64748b";
 
+//// Cantidad de meses que se muestran en el detalle de recaudación
+const cantidadMesesRecaudacion = 8;
+
 //// Función para mostrar una notificación con Toastify
 function notificar(texto, tipo) {
     Toastify({
@@ -172,11 +175,16 @@ function guardarSocio() {
             fechaATexto(fechaSistema),
             fechaApto === "" ? null : fechaApto,
             null,   // fechaUltimoPago
-            null    // ultimoMesPago
+            null,   // ultimoMesPago
+            null,   // autorizacion
+            []      // pagos
         );
         socios.push(nuevoSocio);
         idResaltado = nuevoSocio.id;
-        notificar(`Se agregó a ${nombre} ${apellido} como socio N° ${nuevoSocio.id}. Registrá el primer pago (incluye inscripción) con el botón "Pago".`, "exito");
+        const avisoMenor = requiereAutorizacion(nuevoSocio, fechaSistema)
+            ? " Recorda cargar la autorización del adulto responsable."
+            : "";
+        notificar(`Se agregó a ${nombre} ${apellido} como socio N° ${nuevoSocio.id}. Registrá el primer pago con el botón "Pago".${avisoMenor}`, "exito");
     } else {
         socioEditando.nombre = nombre;
         socioEditando.apellido = apellido;
@@ -244,12 +252,22 @@ async function registrarPago(id) {
     const estabaMoroso = estadoCuota(socio, fechaSistema) === "Moroso" && !requiereInscripcion(socio);
     socio.ultimoMesPago = numeroAMes(numeroDeMes(fechaSistema));
     socio.fechaUltimoPago = fechaATexto(fechaSistema);
+//// El pago queda registrado en el historial del socio con el monto cobrado en ese momento
+    socio.pagos.push({
+        fecha: socio.fechaUltimoPago,
+        mes: socio.ultimoMesPago,
+        categoria,
+        conceptos,
+        total
+    });
     idResaltado = id;
     guardarSocios();
     aplicarFiltros();
     let detalleAcceso = "";
     if (aptoVencido(socio, fechaSistema)) {
         detalleAcceso = " Todavía no tiene acceso: el apto físico está vencido.";
+    } else if (autorizacionPendiente(socio, fechaSistema)) {
+        detalleAcceso = " Todavía no tiene acceso: falta la autorización del adulto responsable.";
     } else if (estabaMoroso) {
         detalleAcceso = " Se rehabilita el acceso.";
     }
@@ -265,6 +283,165 @@ function registrarApto(id) {
     guardarSocios();
     aplicarFiltros();
     notificar(`Se registró el apto físico de ${nombre} ${apellido}. Vence el ${fechaATexto(vencimientoApto(socio))}.`, "exito");
+}
+
+//// Función que arma la tabla del historial de pagos de un socio, del más reciente al más antiguo
+function crearTablaHistorial(pagos) {
+    if (pagos.length === 0) {
+        return `<p class="nota-swal">Todavía no registra pagos.</p>`;
+    }
+//// Se copia el array con spread antes de invertirlo, porque reverse() modifica el array original
+    const filas = [...pagos].reverse()
+        .map(({ fecha, mes, conceptos, total }) => `
+            <tr>
+                <td>${fecha}</td>
+                <td>${nombreMesCompleto(mes)}</td>
+                <td>${conceptos.map(({ detalle }) => detalle).join(" + ")}</td>
+                <td>${formatearMonto(total)}</td>
+            </tr>
+        `)
+        .join("");
+    const totalPagado = pagos.reduce((suma, { total }) => suma + total, 0);
+    return `
+        <table class="tabla-historial">
+            <thead><tr><th>Fecha</th><th>Mes</th><th>Conceptos</th><th>Total</th></tr></thead>
+            <tbody>${filas}</tbody>
+            <tfoot><tr><td colspan="3">Total pagado (${pagos.length} ${pagos.length === 1 ? "pago" : "pagos"})</td><td>${formatearMonto(totalPagado)}</td></tr></tfoot>
+        </table>
+    `;
+}
+
+//// Función para mostrar la ficha del socio: datos, acceso, autorización e historial de pagos
+async function mostrarFicha(id) {
+    const socio = socios.find((socioRegistrado) => socioRegistrado.id === id);
+    const { nombre, apellido, numDocumento, email, fechaNacimiento, fechaAlta, autorizacion, pagos } = socio;
+    const edad = calcularEdad(socio, fechaSistema);
+    const esMenor = requiereAutorizacion(socio, fechaSistema);
+    const tieneAutorizacion = esMenor && autorizacion !== null;
+    let textoAutorizacion = "No corresponde (mayor de edad)";
+    if (esMenor) {
+        textoAutorizacion = autorizacion === null
+            ? `<span class="texto-alerta">Pendiente: no tiene acceso hasta que se cargue</span>`
+            : `${autorizacion.nombre} ${autorizacion.apellido} (DNI ${autorizacion.numDocumento})<br>${autorizacion.email} · cargada el ${autorizacion.fecha}`;
+    }
+    const resultado = await Swal.fire({
+        title: `${apellido}, ${nombre}`,
+        html: `
+            <dl class="ficha-datos">
+                <dt>N° de socio</dt><dd>${id}</dd>
+                <dt>Documento</dt><dd>${numDocumento}</dd>
+                <dt>Email</dt><dd>${email}</dd>
+                <dt>Nacimiento</dt><dd>${fechaNacimiento} (${edad} años)</dd>
+                <dt>Fecha de alta</dt><dd>${fechaAlta}</dd>
+                <dt>Categoría</dt><dd>${categoriaCuota(edad)}</dd>
+                <dt>Acceso</dt><dd>${tieneAcceso(socio, fechaSistema) ? "Habilitado" : `<span class="texto-alerta">Sin acceso</span>`}</dd>
+                <dt>Autorización</dt><dd>${textoAutorizacion}</dd>
+            </dl>
+            <h3 class="ficha-subtitulo">Historial de pagos</h3>
+            ${crearTablaHistorial(pagos)}
+        `,
+        width: 720,
+        confirmButtonText: "Cerrar",
+        confirmButtonColor: colorCancelar,
+//// Los botones de autorización solo aparecen si el socio es menor de edad.
+//// "Anular" aparece solo si ya tiene una autorización cargada
+        showDenyButton: esMenor,
+        denyButtonText: tieneAutorizacion ? "Modificar autorización" : "Cargar autorización",
+        denyButtonColor: colorPrincipal,
+        showCancelButton: tieneAutorizacion,
+        cancelButtonText: "Anular autorización",
+        cancelButtonColor: colorPeligro
+    });
+    if (resultado.isDenied) {
+        await cargarAutorizacion(id);
+    }
+//// Se distingue el botón "Anular" de cerrar el cuadro con Escape o haciendo clic afuera
+    if (resultado.dismiss === Swal.DismissReason.cancel) {
+        await anularAutorizacion(id);
+    }
+}
+
+//// Función para cargar o modificar la autorización del adulto responsable de un socio menor
+async function cargarAutorizacion(id) {
+    const socio = socios.find((socioRegistrado) => socioRegistrado.id === id);
+    const { nombre, apellido, autorizacion } = socio;
+    const resultado = await Swal.fire({
+        title: "Autorización del adulto responsable",
+        html: `
+            <p class="nota-swal">Socio menor de edad: ${nombre} ${apellido} (N° ${id})</p>
+            <div class="formulario formulario-swal">
+                <div class="campo">
+                    <label for="swal-nombre">Nombre</label>
+                    <input type="text" id="swal-nombre" placeholder="Ej: María" value="${autorizacion === null ? "" : autorizacion.nombre}">
+                </div>
+                <div class="campo">
+                    <label for="swal-apellido">Apellido</label>
+                    <input type="text" id="swal-apellido" placeholder="Ej: López" value="${autorizacion === null ? "" : autorizacion.apellido}">
+                </div>
+                <div class="campo campo-ancho">
+                    <label for="swal-documento">Documento</label>
+                    <input type="text" id="swal-documento" placeholder="Ej: 25123456" maxlength="8" value="${autorizacion === null ? "" : autorizacion.numDocumento}">
+                </div>
+                <div class="campo campo-ancho">
+                    <label for="swal-email">Email de contacto</label>
+                    <input type="text" id="swal-email" placeholder="Ej: maria@mail.com" value="${autorizacion === null ? "" : autorizacion.email}">
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Guardar autorización",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: colorPrincipal,
+        cancelButtonColor: colorCancelar,
+        reverseButtons: true,
+        focusConfirm: false,
+//// preConfirm valida los datos antes de cerrar el cuadro: si hay un error, lo muestra y el cuadro sigue abierto
+        preConfirm: () => {
+            const datosResponsable = {
+                nombre: document.getElementById("swal-nombre").value,
+                apellido: document.getElementById("swal-apellido").value,
+                numDocumento: document.getElementById("swal-documento").value,
+                email: document.getElementById("swal-email").value.toLowerCase()
+            };
+            const { nombre, apellido, numDocumento, email } = datosResponsable;
+            const error = validarAutorizacion(nombre, apellido, numDocumento, email);
+            if (error !== "") {
+                Swal.showValidationMessage(error);
+                return false;
+            }
+            return datosResponsable;
+        }
+    });
+    if (!resultado.isConfirmed) {
+        return;
+    }
+    socio.autorizacion = { ...resultado.value, fecha: fechaATexto(fechaSistema) };
+    idResaltado = id;
+    guardarSocios();
+    aplicarFiltros();
+    const detalleAcceso = tieneAcceso(socio, fechaSistema) ? " Ya tiene acceso al gimnasio." : "";
+    notificar(`Se registró la autorización de ${socio.autorizacion.nombre} ${socio.autorizacion.apellido} para ${nombre} ${apellido}.${detalleAcceso}`, "exito");
+}
+
+//// Función para anular la autorización de un menor, previa confirmación (por error de carga u otra eventualidad)
+async function anularAutorizacion(id) {
+    const socio = socios.find((socioRegistrado) => socioRegistrado.id === id);
+    const { nombre, apellido, autorizacion } = socio;
+    const confirmado = await confirmar({
+        titulo: "¿Anular la autorización?",
+        html: `Se va a anular la autorización de <strong>${autorizacion.nombre} ${autorizacion.apellido}</strong> para ${nombre} ${apellido}.<br>El socio no va a tener acceso al gimnasio hasta que se cargue una nueva.`,
+        icono: "warning",
+        textoConfirmar: "Sí, anular",
+        peligro: true
+    });
+    if (!confirmado) {
+        return;
+    }
+    socio.autorizacion = null;
+    idResaltado = id;
+    guardarSocios();
+    aplicarFiltros();
+    notificar(`Se anuló la autorización de ${nombre} ${apellido}. No tiene acceso hasta que se cargue una nueva.`, "aviso");
 }
 
 //// Función para cambiar la fecha con la que se trabaja
@@ -308,6 +485,7 @@ function actualizarResumen() {
     const pendientes = filtrarPorEstado(socios, "Pendiente").length;
     const morosos = filtrarPorEstado(socios, "Moroso").length;
     const aptosVencidos = filtrarPorEstado(socios, "apto-vencido").length;
+    const menoresSinAutorizacion = filtrarPorEstado(socios, "sin-autorizacion").length;
     const cumpleaneros = socios.filter((socio) => cumpleAnios(socio, fechaSistema));
     const periodo = fechaSistema.getDate() <= diaLimitePago
         ? `Período de pago abierto hasta el ${String(diaLimitePago).padStart(2, "0")}/${String(fechaSistema.getMonth() + 1).padStart(2, "0")}.`
@@ -317,6 +495,7 @@ function actualizarResumen() {
         <li><strong>${pendientes}</strong> con pago pendiente</li>
         <li><strong>${morosos}</strong> morosos</li>
         <li><strong>${aptosVencidos}</strong> con apto vencido</li>
+        <li><strong>${menoresSinAutorizacion}</strong> ${menoresSinAutorizacion === 1 ? "menor" : "menores"} sin autorización</li>
     `;
     if (cumpleaneros.length > 0) {
         const nombres = cumpleaneros.map(({ nombre, apellido }) => `${nombre} ${apellido}`).join(", ");
@@ -324,29 +503,89 @@ function actualizarResumen() {
     }
 }
 
-//// Función para mostrar los valores de abono en los inputs
-function mostrarPrecios() {
-    conceptosAbono.forEach(({ clave, input }) => {
-        input.value = precios[clave];
+//// Función para mostrar la recaudación de los últimos meses, hasta el mes de la fecha del sistema
+function mostrarRecaudacion() {
+    const todosLosPagos = obtenerTodosLosPagos(socios);
+    const mesActual = numeroDeMes(fechaSistema);
+    let filas = "";
+    for (let mesesAtras = 0; mesesAtras < cantidadMesesRecaudacion; mesesAtras++) {
+        const mes = numeroAMes(mesActual - mesesAtras);
+        const { cantidad, total } = recaudacionDelMes(todosLosPagos, mes);
+        filas += `
+            <tr class="${mesesAtras === 0 ? "mes-actual" : ""}">
+                <td>${nombreMesCompleto(mes)}</td>
+                <td>${cantidad}</td>
+                <td>${sociosSinPagar(socios, mes)}</td>
+                <td>${formatearMonto(total)}</td>
+            </tr>
+        `;
+    }
+    Swal.fire({
+        title: "Recaudación mensual",
+        html: `
+            <table class="tabla-recaudacion">
+                <thead><tr><th>Mes</th><th>Pagos</th><th>Sin pagar</th><th>Total</th></tr></thead>
+                <tbody>${filas}</tbody>
+            </table>
+            <p class="nota-swal">Pagos y total: se cuenta cada pago en el mes en que se cobró. Sin pagar: socios con la cuota de ese mes pendiente o morosa. Los socios eliminados no se incluyen.</p>
+        `,
+        confirmButtonText: "Cerrar",
+        confirmButtonColor: colorCancelar
     });
 }
 
-//// Función para guardar los valores de abono editados, previa confirmación de los cambios
-async function guardarValoresCuota() {
+//// Función para mostrar en el módulo de abonos lo recaudado en el mes de la fecha del sistema
+function actualizarRecaudacionDelMes() {
+    const { total } = recaudacionDelMes(obtenerTodosLosPagos(socios), numeroAMes(numeroDeMes(fechaSistema)));
+    recaudacionMes.innerHTML = `Recaudado en ${nombreMes(fechaSistema)}: <strong>${formatearMonto(total)}</strong>`;
+}
+
+//// Función para editar los valores de abono en un cuadro de SweetAlert2 y guardarlos, previa confirmación de los cambios
+async function editarValoresAbono() {
     if (!datosCargados) {
         notificar("No se pueden guardar cambios porque los datos no se cargaron. Usá el botón Restaurar DB para reintentar.", "error");
         return;
     }
-    const nuevos = {};
+    const campos = conceptosAbono
+        .map(({ clave, etiqueta, detalle }) => `
+            <div class="campo-linea">
+                <label for="abono-${clave}">${etiqueta} <span class="opcional">(${detalle})</span></label>
+                <input type="text" id="abono-${clave}" value="${precios[clave]}">
+            </div>
+        `)
+        .join("");
+    const resultado = await Swal.fire({
+        title: "Valores de abono",
+        html: `
+            <p class="nota-swal">Cuota mensual por categoría, se paga del 1 al 5 de cada mes.</p>
+            <div class="formulario-abonos formulario-swal">${campos}</div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Guardar valores",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: colorPrincipal,
+        cancelButtonColor: colorCancelar,
+        reverseButtons: true,
+        focusConfirm: false,
+//// preConfirm valida los valores antes de cerrar el cuadro: si hay un error, lo muestra y el cuadro sigue abierto
+        preConfirm: () => {
+            const valoresIngresados = {};
 //// Se usa for...of (y no forEach) porque si un valor es inválido hay que cortar la función con return
-    for (const { clave, etiqueta, input } of conceptosAbono) {
-        if (!esNumeroValido(input.value) || parseInt(input.value) <= 0) {
-            notificar(`El valor de ${etiqueta} debe ser un número mayor a 0, sin puntos ni signos.`, "error");
-            input.focus();
-            return;
+            for (const { clave, etiqueta } of conceptosAbono) {
+                const valor = document.getElementById(`abono-${clave}`).value;
+                if (!esNumeroValido(valor) || parseInt(valor) <= 0) {
+                    Swal.showValidationMessage(`El valor de ${etiqueta} debe ser un número mayor a 0, sin puntos ni signos.`);
+                    return false;
+                }
+                valoresIngresados[clave] = parseInt(valor);
+            }
+            return valoresIngresados;
         }
-        nuevos[clave] = parseInt(input.value);
+    });
+    if (!resultado.isConfirmed) {
+        return;
     }
+    const nuevos = resultado.value;
     const cambios = conceptosAbono.filter(({ clave }) => nuevos[clave] !== precios[clave]);
     if (cambios.length === 0) {
         notificar("No hay cambios en los valores de abono.", "info");
@@ -361,7 +600,6 @@ async function guardarValoresCuota() {
         textoConfirmar: "Guardar valores"
     });
     if (!confirmado) {
-        mostrarPrecios();
         return;
     }
     precios = { ...precios, ...nuevos };
@@ -378,6 +616,7 @@ function mostrarCargando() {
     `;
     contador.innerHTML = "";
     resumen.innerHTML = `<li>Cargando datos...</li>`;
+    recaudacionMes.innerHTML = "Cargando datos...";
 }
 
 //// Función para mostrar en la tabla que la carga falló
@@ -389,6 +628,7 @@ function mostrarErrorCarga(error) {
         </td></tr>
     `;
     resumen.innerHTML = `<li>Sin datos para mostrar.</li>`;
+    recaudacionMes.innerHTML = "Sin datos para mostrar.";
 }
 
 //// Valores de abono vigentes (se cargan desde data.json o del localStorage)
@@ -436,9 +676,11 @@ const botonDiaSiguiente = document.getElementById("btn-dia-siguiente");
 const botonMesSiguiente = document.getElementById("btn-mes-siguiente");
 const botonHoy = document.getElementById("btn-hoy");
 const resumen = document.getElementById("resumen");
-const botonGuardarPrecios = document.getElementById("btn-guardar-precios");
+const botonValoresAbono = document.getElementById("btn-valores-abono");
+const botonRecaudacion = document.getElementById("btn-recaudacion");
+const recaudacionMes = document.getElementById("recaudacion-mes");
 
-//// Conceptos de abono (se cargan desde data.json): clave en el objeto precios, nombre para mostrar e input del formulario
+//// Conceptos de abono (se cargan desde data.json): clave en el objeto precios, nombre y detalle para mostrar
 let conceptosAbono = [];
 
 //// Clases CSS para cada estado de cuota
@@ -474,7 +716,7 @@ function renderizarSocios(lista) {
             <tr class="${claseFila}">
                 <td class="col-numero">${id}</td>
                 <td>
-                    ${apellido}, ${nombre}${marcaCumple}
+                    <button id="ficha-${id}" class="link-socio" title="Ver ficha e historial de pagos">${apellido}, ${nombre}</button>${marcaCumple}
                     <div class="detalle">${email}</div>
                 </td>
                 <td>${numDocumento}</td>
@@ -482,6 +724,7 @@ function renderizarSocios(lista) {
                 <td>
                     <span class="categoria ${categoria.toLowerCase()}">${categoria}</span>
                     <div class="detalle">${formatearMonto(precios[categoria])}</div>
+                    ${autorizacionPendiente(socio, fechaSistema) ? `<div class="detalle detalle-alerta">Sin autorización</div>` : ""}
                 </td>
                 <td>
                     <span class="estado ${clasesEstado[estado]}">${estado}</span>
@@ -505,6 +748,7 @@ function renderizarSocios(lista) {
     });
 //// Asignar los eventos a los botones de cada fila 
     lista.forEach(({ id }) => {
+        document.getElementById(`ficha-${id}`).addEventListener("click", () => mostrarFicha(id));
         document.getElementById(`pago-${id}`).addEventListener("click", () => registrarPago(id));
         document.getElementById(`apto-${id}`).addEventListener("click", () => registrarApto(id));
         document.getElementById(`editar-${id}`).addEventListener("click", () => iniciarEdicion(id));
@@ -525,18 +769,20 @@ function aplicarFiltros() {
     resultado = estado !== "todos" ? filtrarPorEstado(resultado, estado) : resultado;
     renderizarSocios(resultado);
     actualizarResumen();
+    actualizarRecaudacionDelMes();
 }
 
 //// Eventos de botones
 botonGuardar.addEventListener("click", guardarSocio);
 botonCancelar.addEventListener("click", cancelarEdicion);
 botonRestaurar.addEventListener("click", restaurarBaseDeDatos);
-botonGuardarPrecios.addEventListener("click", guardarValoresCuota);
+botonValoresAbono.addEventListener("click", editarValoresAbono);
 botonAplicarFecha.addEventListener("click", aplicarFechaEscrita);
 botonDiaAnterior.addEventListener("click", () => moverDias(-1));
 botonDiaSiguiente.addEventListener("click", () => moverDias(1));
 botonMesSiguiente.addEventListener("click", avanzarMes);
 botonHoy.addEventListener("click", () => cambiarFechaSistema(fechaDeHoy()));
+botonRecaudacion.addEventListener("click", mostrarRecaudacion);
 
 //// Eventos de teclado en el formulario 
 const inputsFormulario = [inputNombre, inputApellido, inputNacimiento, inputDocumento, inputEmail, inputApto];
@@ -564,18 +810,3 @@ selectEstado.addEventListener("change", aplicarFiltros);
 //// Carga inicial: muestra la fecha del sistema y trae los datos de forma asíncrona
 inputFechaSistema.value = fechaATexto(fechaSistema);
 cargarDatos();
-
-/* Recordatorio a trabajar cuando se desarrolle mejor la parte de vencimientos aptos medicos, autorizacion de menores, aranceles, etc
-setTimeout(() => {
-    {
-        const cantidadMenores = filtrarPorCategoria(socios, "Menor").length;
-        notificar(
-            cantidadMenores === 0
-                ? "Recordatorio: no hay socios menores de edad registrados."
-                : `Recordatorio: hay ${cantidadMenores} ${cantidadMenores === 1 ? "socio menor" : "socios menores"} de edad. Verificá que tengan la autorización firmada de un adulto responsable.`,
-            "info"
-        );
-    }
-}, 3000);
-
-*/

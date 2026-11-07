@@ -147,6 +147,22 @@ body {
     width: 100%;
 }
  
+/* Módulo de abonos y recaudación */
+.recaudacion-mes {
+    padding: 10px 12px;
+    background-color: #f8fafc;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #475569;
+}
+ 
+.acciones-modulo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+}
+ 
 /* Valores de abono etiqueta e input */
 .formulario-abonos {
     display: flex;
@@ -388,6 +404,72 @@ button {
     color: #64748b;
 }
  
+/* Ficha del socio */
+.ficha-datos {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 6px 12px;
+    font-size: 14px;
+    text-align: left;
+}
+ 
+.ficha-datos dt {
+    font-weight: bold;
+    color: #475569;
+}
+ 
+.ficha-subtitulo {
+    margin: 18px 0 8px;
+    font-size: 16px;
+    color: #1e293b;
+    text-align: left;
+}
+ 
+.tabla-historial {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+ 
+.tabla-historial th {
+    padding: 6px;
+    background-color: #f1f5f9;
+    color: #475569;
+}
+ 
+.tabla-historial td {
+    padding: 6px;
+    border-bottom: 1px solid #e2e8f0;
+}
+ 
+.tabla-historial td:last-child,
+.tabla-historial th:last-child {
+    text-align: right;
+    white-space: nowrap;
+}
+ 
+.tabla-historial tfoot td {
+    font-weight: bold;
+    border-bottom: none;
+    border-top: 2px solid #1e293b;
+}
+ 
+.texto-alerta {
+    color: #b91c1c;
+    font-weight: bold;
+}
+ 
+/* Formularios dentro de los cuadros (autorización y valores de abono) */
+.formulario-swal {
+    margin-top: 14px;
+    text-align: left;
+}
+ 
+.formulario-swal .campo-linea input {
+    width: 120px;
+}
+ 
 /* ===== Estado de carga de los datos ===== */
 .tabla-socios .estado-carga {
     padding: 48px 12px;
@@ -426,6 +508,39 @@ button {
     pointer-events: none;
 }
  
+/* ===== Recaudación ===== */
+.tabla-recaudacion {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+}
+ 
+.tabla-recaudacion th {
+    padding: 6px;
+    color: #64748b;
+    font-size: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+ 
+.tabla-recaudacion td {
+    padding: 6px;
+    color: #475569;
+}
+ 
+.tabla-recaudacion th:not(:first-child),
+.tabla-recaudacion td:not(:first-child) {
+    text-align: right;
+    white-space: nowrap;
+}
+ 
+.tabla-recaudacion .mes-actual td {
+    font-weight: bold;
+    color: #1e293b;
+    background-color: #fff7ed;
+}
+ 
 /* ===== Buscador y filtro ===== */
 .herramientas {
     display: flex;
@@ -458,7 +573,7 @@ button {
  
 /* ===== Tabla de socios ===== */
 .tabla-contenedor {
-    max-height: calc(100vh - 285px);
+    max-height: calc(100vh - 300px);
     min-height: 320px;
     overflow: auto;
     border: 1px solid #e2e8f0;
@@ -506,6 +621,23 @@ button {
 .col-numero {
     font-weight: bold;
     color: #1e293b;
+}
+ 
+/* Nombre del socio: abre la ficha */
+.link-socio {
+    padding: 0;
+    background: none;
+    color: #1e293b;
+    font-size: 13px;
+    text-align: left;
+    white-space: normal;
+    text-decoration: underline dotted #94a3b8;
+    text-underline-offset: 3px;
+}
+ 
+.link-socio:hover {
+    color: #ea580c;
+    text-decoration-color: #ea580c;
 }
  
 .col-acciones {
